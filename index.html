@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Strike — Options Strategy Advisor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+  :root{
+    --ink:#0A0C10; --panel:#12161D; --panel2:#161B23; --line:#222A35;
+    --line2:#2C3645; --txt:#E8EAED; --mut:#8B95A3; --mut2:#5E6876;
+    --gold:#E0A645; --gold-soft:rgba(224,166,69,.12);
+    --bull:#3FB68B; --bear:#E5544B; --neutral:#7C8794; --vol:#B98BE0;
+    --bull-soft:rgba(63,182,139,.12); --bear-soft:rgba(229,84,75,.12);
+    --vol-soft:rgba(185,139,224,.12); --neutral-soft:rgba(124,135,148,.12);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--ink); color:var(--txt);
+    font-family:'Hanken Grotesk',system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased; line-height:1.5;
+  }
+  .mono{font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 22px 96px}
+
+  .top{padding:40px 0 26px;border-bottom:1px solid var(--line)}
+  .brand{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+  .mark{
+    font-weight:800;font-size:30px;letter-spacing:-.02em;
+    display:flex;align-items:center;gap:11px;
+  }
+  .mark .dot{width:11px;height:11px;border-radius:2px;background:var(--gold);
+    box-shadow:0 0 0 4px var(--gold-soft);transform:rotate(45deg)}
+  .tagline{color:var(--mut);font-size:13.5px;letter-spacing:.01em}
+  .framework{margin-top:7px;color:var(--mut2);font-size:12px;letter-spacing:.04em;text-transform:uppercase}
+
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px}
+  .controls{margin-top:26px;padding:18px;display:grid;grid-template-columns:1.4fr 1fr 1fr auto;gap:14px;align-items:end}
+  .field label{display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);margin-bottom:7px}
+  .field input,.field select{
+    width:100%;background:var(--ink);border:1px solid var(--line2);color:var(--txt);
+    border-radius:9px;padding:12px 13px;font-size:15px;font-family:inherit;outline:none;transition:border-color .15s,box-shadow .15s;
+  }
+  .field input.mono{letter-spacing:.06em;text-transform:uppercase;font-weight:600}
+  .field input:focus,.field select:focus{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-soft)}
+  .field select{appearance:none;cursor:pointer;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4l4 4 4-4' stroke='%238B95A3' stroke-width='1.5' fill='none'/></svg>");
+    background-repeat:no-repeat;background-position:right 13px center;padding-right:34px}
+  .go{
+    background:var(--gold);color:#1a1206;border:none;border-radius:9px;
+    padding:12px 24px;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;
+    height:46px;white-space:nowrap;transition:filter .15s,transform .05s;letter-spacing:.01em;
+  }
+  .go:hover{filter:brightness(1.08)}
+  .go:active{transform:translateY(1px)}
+  .go:disabled{opacity:.5;cursor:not-allowed}
+
+  .keyrow{display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap}
+  .keytoggle{background:none;border:none;color:var(--mut);font-size:12px;cursor:pointer;font-family:inherit;text-decoration:underline;text-underline-offset:3px;padding:0}
+  .keyrow input{flex:1;min-width:220px;background:var(--ink);border:1px solid var(--line2);color:var(--txt);border-radius:8px;padding:9px 11px;font-size:13px;font-family:'JetBrains Mono',monospace;outline:none}
+  .keyrow input:focus{border-color:var(--gold)}
+  .keyhint{color:var(--mut2);font-size:11.5px;flex-basis:100%}
+
+  .status{margin-top:30px;padding:26px;text-align:center;color:var(--mut)}
+  .status .bar{height:2px;background:var(--line);border-radius:2px;overflow:hidden;margin:18px auto 0;max-width:340px}
+  .status .bar i{display:block;height:100%;width:40%;background:var(--gold);animation:slide 1.3s ease-in-out infinite}
+  @keyframes slide{0%{transform:translateX(-100%)}100%{transform:translateX(350%)}}
+  .status .step{font-size:14px;letter-spacing:.01em}
+  .err{margin-top:24px;padding:18px 20px;border:1px solid var(--bear);background:var(--bear-soft);border-radius:12px;color:#f2b8b3;font-size:14px}
+  .err b{color:var(--bear)}
+
+  .empty{margin-top:34px;padding:46px 30px;text-align:center;border:1px dashed var(--line2);border-radius:14px}
+  .empty h3{margin:0 0 8px;font-size:18px;font-weight:600}
+  .empty p{margin:0 auto;max-width:480px;color:var(--mut);font-size:14px}
+
+  .rhead{margin-top:30px;padding:22px 24px;display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap}
+  .rhead .id .tk{font-size:30px;font-weight:800;letter-spacing:-.01em}
+  .rhead .id .co{color:var(--mut);font-size:14px;margin-top:2px}
+  .rhead .px{text-align:right}
+  .rhead .px .v{font-size:30px;font-weight:700}
+  .rhead .px .as{color:var(--mut2);font-size:12px;margin-top:2px}
+  .verdict{display:inline-flex;align-items:center;gap:9px;padding:8px 14px;border-radius:999px;font-weight:700;font-size:14px;letter-spacing:.01em}
+  .verdict .pip{width:8px;height:8px;border-radius:50%}
+  .conv{color:var(--mut);font-weight:500;font-size:12.5px;margin-left:4px}
+  .vsum{margin-top:14px;color:var(--txt);font-size:15px;line-height:1.6;border-top:1px solid var(--line);padding-top:14px}
+
+  .stage{margin-top:30px}
+  .stage>h2{display:flex;align-items:center;gap:14px;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut);margin:0 0 16px;font-weight:600}
+  .stage>h2 .n{font-family:'JetBrains Mono',monospace;color:var(--gold);font-size:13px;font-weight:600}
+  .stage>h2 .ln{flex:1;height:1px;background:var(--line)}
+
+  .triad{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:18px}
+  .card h4{margin:0 0 9px;font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--gold);font-weight:600}
+  .card p{margin:0;color:#cfd5dd;font-size:14px;line-height:1.62}
+
+  .ctx{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:16px}
+  .stat .k{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--mut)}
+  .stat .val{font-size:17px;font-weight:700;margin-top:7px}
+  .stat .sub{font-size:12.5px;color:var(--mut);margin-top:6px;line-height:1.5}
+
+  .strat{padding:0;overflow:hidden}
+  .strat .sh{padding:20px 24px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+  .strat .sh .nm{font-size:22px;font-weight:800;letter-spacing:-.01em}
+  .strat .sh .badge{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);border:1px solid var(--gold);border-radius:6px;padding:4px 9px;font-weight:600}
+  .strat .body{display:grid;grid-template-columns:1.05fr .95fr;gap:0}
+  .strat .left{padding:22px 24px;border-right:1px solid var(--line)}
+  .strat .right{padding:22px 24px}
+  .rationale{color:#cfd5dd;font-size:14.5px;line-height:1.62;margin:0 0 20px}
+
+  table.legs{width:100%;border-collapse:collapse;font-size:13.5px}
+  table.legs th{text-align:left;color:var(--mut);font-weight:500;font-size:11px;letter-spacing:.05em;text-transform:uppercase;padding:0 8px 9px 0;border-bottom:1px solid var(--line)}
+  table.legs td{padding:11px 8px 11px 0;border-bottom:1px solid var(--line)}
+  table.legs tr:last-child td{border-bottom:none}
+  .pill{display:inline-block;padding:2px 9px;border-radius:5px;font-size:12px;font-weight:600;letter-spacing:.02em}
+  .pill.buy{background:var(--bull-soft);color:var(--bull)}
+  .pill.sell{background:var(--bear-soft);color:var(--bear)}
+
+  .metrics{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px}
+  .metric{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:13px 14px}
+  .metric .k{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--mut)}
+  .metric .v{font-size:16px;font-weight:700;margin-top:5px}
+  .metric.profit .v{color:var(--bull)}
+  .metric.loss .v{color:var(--bear)}
+
+  .payoff-cap{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--mut);margin:0 0 12px}
+  .legend{display:flex;gap:16px;margin-top:12px;font-size:12px;color:var(--mut);flex-wrap:wrap}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .legend i{width:10px;height:10px;border-radius:2px;display:inline-block}
+
+  .illus{margin:18px 24px 22px;font-size:12px;color:var(--mut2);line-height:1.55;border-top:1px solid var(--line);padding-top:14px}
+
+  .qa{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .qrow{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .qrow .q{font-size:13px;font-weight:600;color:var(--gold);margin:0 0 7px;line-height:1.45}
+  .qrow .a{margin:0;font-size:14px;color:#cfd5dd;line-height:1.6}
+
+  .alt{display:flex;gap:12px;flex-wrap:wrap}
+  .altchip{flex:1 1 240px;background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:14px 16px}
+  .altchip .an{font-weight:700;font-size:14.5px}
+  .altchip .aw{color:var(--mut);font-size:13px;margin-top:5px;line-height:1.55}
+  ul.risks{list-style:none;margin:0;padding:0;display:grid;gap:9px}
+  ul.risks li{position:relative;padding-left:22px;color:#cfd5dd;font-size:14px;line-height:1.55}
+  ul.risks li::before{content:"";position:absolute;left:0;top:8px;width:7px;height:7px;background:var(--bear);border-radius:2px;transform:rotate(45deg)}
+
+  .disclaimer{margin-top:38px;padding-top:20px;border-top:1px solid var(--line);color:var(--mut2);font-size:12px;line-height:1.6}
+  .disclaimer b{color:var(--mut)}
+
+  @media(max-width:840px){
+    .controls{grid-template-columns:1fr 1fr;}
+    .go{grid-column:1/-1}
+    .triad,.ctx,.qa,.strat .body{grid-template-columns:1fr}
+    .strat .left{border-right:none;border-bottom:1px solid var(--line)}
+    .rhead .px{text-align:left}
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState, useMemo, useRef} = React;
+
+const DIR_META = {
+  Bullish:  {c:"var(--bull)", soft:"var(--bull-soft)"},
+  Bearish:  {c:"var(--bear)", soft:"var(--bear-soft)"},
+  Neutral:  {c:"var(--neutral)", soft:"var(--neutral-soft)"},
+  Volatile: {c:"var(--vol)", soft:"var(--vol-soft)"},
+};
+
+const STEPS = [
+  "Pulling current quote & price action…",
+  "Reading the fundamentals — operations, balance sheet, valuation…",
+  "Gauging the volatility environment…",
+  "Forming a directional thesis…",
+  "Matching the appropriate options strategy…",
+];
+
+function fmtMoney(n){
+  if(n===null||n===undefined||isNaN(n)) return "—";
+  const a=Math.abs(n);
+  return (n<0?"-$":"$")+a.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+function legPL(leg, S){
+  const sign = (leg.action||"").toLowerCase()==="buy" ? 1 : -1;
+  const k = Number(leg.strike)||0;
+  const prem = Number(leg.estPremium)||0;
+  const qty = Number(leg.qty)||1;
+  const right = (leg.right||"").toLowerCase();
+  let intrinsic;
+  if(right==="call") intrinsic = Math.max(S-k,0);
+  else if(right==="put") intrinsic = Math.max(k-S,0);
+  else intrinsic = S-k;
+  const pl = right==="stock" ? sign*intrinsic : sign*(intrinsic - prem);
+  return pl*100*qty;
+}
+function totalPL(legs, S){ return legs.reduce((s,l)=>s+legPL(l,S),0); }
+
+function Payoff({legs, current, breakevens}){
+  const data = useMemo(()=>{
+    if(!legs||!legs.length) return null;
+    const strikes = legs.map(l=>Number(l.strike)||0).filter(Boolean);
+    const ref = Number(current)|| (strikes.reduce((a,b)=>a+b,0)/Math.max(strikes.length,1));
+    const lo = Math.max(0.0001, ref*0.7), hi = ref*1.3;
+    const pts=[]; const N=120;
+    for(let i=0;i<=N;i++){ const S=lo+(hi-lo)*i/N; pts.push({S, pl:totalPL(legs,S)}); }
+    const maxPL=Math.max(...pts.map(p=>p.pl)), minPL=Math.min(...pts.map(p=>p.pl));
+    return {pts,lo,hi,ref,maxPL,minPL};
+  },[legs,current]);
+  if(!data) return null;
+  const W=440,H=240,padL=8,padR=8,padT=14,padB=22;
+  const {pts,lo,hi,maxPL,minPL,ref}=data;
+  const span = (maxPL-minPL)||1;
+  const x = S => padL + (S-lo)/(hi-lo)*(W-padL-padR);
+  const y = pl => padT + (maxPL-pl)/span*(H-padT-padB);
+  const zeroY = y(0);
+  const line = pts.map((p,i)=>`${i?'L':'M'}${x(p.S).toFixed(1)},${y(p.pl).toFixed(1)}`).join(" ");
+  const areaUp = `M${x(lo)},${zeroY} `+pts.map(p=>`L${x(p.S).toFixed(1)},${y(Math.max(p.pl,0)).toFixed(1)}`).join(" ")+` L${x(hi)},${zeroY} Z`;
+  const areaDn = `M${x(lo)},${zeroY} `+pts.map(p=>`L${x(p.S).toFixed(1)},${y(Math.min(p.pl,0)).toFixed(1)}`).join(" ")+` L${x(hi)},${zeroY} Z`;
+  return (
+    <div>
+      <p className="payoff-cap">Payoff at expiration · per spread</p>
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{display:"block"}}>
+        <defs>
+          <linearGradient id="up" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#3FB68B" stopOpacity="0.28"/>
+            <stop offset="100%" stopColor="#3FB68B" stopOpacity="0"/>
+          </linearGradient>
+          <linearGradient id="dn" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#E5544B" stopOpacity="0"/>
+            <stop offset="100%" stopColor="#E5544B" stopOpacity="0.28"/>
+          </linearGradient>
+        </defs>
+        <path d={areaUp} fill="url(#up)"/>
+        <path d={areaDn} fill="url(#dn)"/>
+        <line x1={padL} y1={zeroY} x2={W-padR} y2={zeroY} stroke="#3a4452" strokeWidth="1" strokeDasharray="3 3"/>
+        <line x1={x(ref)} y1={padT} x2={x(ref)} y2={H-padB} stroke="#E0A645" strokeWidth="1" strokeOpacity="0.5" strokeDasharray="2 4"/>
+        <text x={x(ref)} y={H-7} fill="#E0A645" fontSize="10" textAnchor="middle" fontFamily="'JetBrains Mono',monospace">{Number(ref).toFixed(0)}</text>
+        {legs.map((l,i)=>{ const k=Number(l.strike); if(!k||(l.right||"").toLowerCase()==="stock")return null;
+          return <line key={i} x1={x(k)} y1={zeroY-5} x2={x(k)} y2={zeroY+5} stroke="#5E6876" strokeWidth="1.5"/>;})}
+        <path d={line} fill="none" stroke="#E8EAED" strokeWidth="2" strokeLinejoin="round"/>
+      </svg>
+      <div className="legend">
+        <span><i style={{background:"#3FB68B"}}></i>Profit zone</span>
+        <span><i style={{background:"#E5544B"}}></i>Loss zone</span>
+        <span><i style={{background:"#E0A645"}}></i>Spot ≈ {fmtMoney(ref)}</span>
+      </div>
+    </div>
+  );
+}
+
+async function analyze(ticker, view, risk, horizon, apiKey){
+  const today = new Date().toISOString().slice(0,10);
+  const schema = `{
+"ticker": string, "companyName": string, "currentPrice": number, "asOf": string (YYYY-MM-DD),
+"priceContext": string (one line on recent price action / trend / 52w range),
+"view": {"direction": "Bullish"|"Bearish"|"Neutral"|"Volatile", "conviction": "Low"|"Medium"|"High", "horizon": string, "summary": string (2-3 sentences tying thesis to expected move)},
+"thesis": {"operational": string (2-3 sentences: competitive position, products, moat, threats), "financial": string (2-3 sentences: balance sheet, margins, ROIC, capital allocation), "valuation": string (2-3 sentences: P/E, EV/EBITDA vs history & peers, fair value read)},
+"optionsContext": {"ivEnvironment": "Low"|"Moderate"|"Elevated"|"High", "ivNote": string (short), "earnings": string (next earnings date or 'n/a' + whether it falls before expiry), "liquidityNote": string (short, options liquidity)},
+"strategy": {"name": string, "type": string (e.g. 'Vertical debit spread'), "rationale": string (3-4 sentences mapping the view+IV+risk to this exact structure), 
+  "legs": [{"action":"Buy"|"Sell","right":"Call"|"Put"|"Stock","strike": number,"expiry": string,"estPremium": number (per share; 0 for Stock leg, and set strike=entry price for Stock),"qty": number}],
+  "maxProfit": string, "maxLoss": string, "breakevens": [number], "note": string (one line: strikes/premiums are illustrative estimates)},
+"selectionQA": {"profitIfRight": string, "profitIfPartlyRight": string, "lossIfWrong": string, "paidEnough": string (is the risk/reward worth it), "betterAlternative": string},
+"alternatives": [{"name": string, "whenToUse": string}],
+"risks": [string, string, string]
+}`;
+  const sys = `You are a disciplined options strategist. Today is ${today}. Use web_search to gather the most recent data for the requested US-listed stock: current/last price, recent trend and 52-week range, fundamentals (financial position, debt, margins, ROIC, P/E and EV/EBITDA vs history and peers), the next earnings date, and the implied-volatility environment (IV rank/level, whether elevated or cheap). Then follow this exact process from "Options Trading 101": (1) build an investment thesis across Operational, Financial, and Valuation dimensions; (2) commit to a single directional/volatility VIEW; (3) select the SINGLE most appropriate options strategy for that view, the IV environment, and the trader's stated risk tolerance, then answer the strategy-selection questions honestly. Pick realistic near-the-money strikes and a concrete expiry consistent with the horizon (~30-60 DTE unless told otherwise); express expiry as an approximate date. If exact option premiums are unavailable, estimate them from price and IV and flag them as illustrative. Be decisive and concrete with numbers. Return ONLY valid minified JSON matching this schema, no markdown, no prose outside JSON:\n${schema}`;
+  const userView = view==="Auto" ? "Let the analysis determine the view." : `The trader leans ${view}; pressure-test that view but you may override it if the data disagrees.`;
+  const riskTxt = {Defined:"prefers strictly defined / capped risk (spreads, long premium).", Limited:"accepts limited risk but wants efficient cost.", Any:"is comfortable with undefined-risk strategies if justified (e.g. naked short premium)."}[risk]||"";
+  const user = `Stock: ${ticker.toUpperCase()}. ${userView} Risk profile: the trader ${riskTxt} Horizon: ${horizon}. Produce the full JSON analysis.`;
+
+  const headers = {"Content-Type":"application/json"};
+  if(apiKey){ headers["x-api-key"]=apiKey; headers["anthropic-version"]="2023-06-01"; headers["anthropic-dangerous-direct-browser-access"]="true"; }
+
+  const res = await fetch("https://api.anthropic.com/v1/messages",{
+    method:"POST", headers,
+    body: JSON.stringify({
+      model:"claude-sonnet-4-6",
+      max_tokens:4096,
+      system: sys,
+      messages:[{role:"user", content:user}],
+      tools:[{type:"web_search_20250305", name:"web_search", max_uses:6}]
+    })
+  });
+  if(!res.ok){
+    let detail=""; try{ const e=await res.json(); detail=e?.error?.message||""; }catch{}
+    if(res.status===401) throw new Error("Unauthorized. If you're running this on GitHub Pages or your own host, add your Anthropic API key below.");
+    if(res.status===429) throw new Error("Rate limited. Wait a moment and try again."+(detail?" ("+detail+")":""));
+    throw new Error(`Request failed (${res.status}).`+(detail?" "+detail:""));
+  }
+  const data = await res.json();
+  const text = (data.content||[]).filter(b=>b.type==="text").map(b=>b.text).join("\n").trim();
+  if(!text) throw new Error("No analysis returned. Try again.");
+  let json = text;
+  const f = json.indexOf("{"), l = json.lastIndexOf("}");
+  if(f>=0 && l>f) json = json.slice(f,l+1);
+  json = json.replace(/```json|```/g,"").trim();
+  try{ return JSON.parse(json); }
+  catch(e){ throw new Error("Couldn't parse the analysis. Try again — the model occasionally returns malformed output."); }
+}
+
+function Verdict({view}){
+  const m = DIR_META[view.direction]||DIR_META.Neutral;
+  return (
+    <span className="verdict" style={{background:m.soft, color:m.c}}>
+      <span className="pip" style={{background:m.c}}></span>
+      {view.direction}
+      <span className="conv">· {view.conviction} conviction · {view.horizon}</span>
+    </span>
+  );
+}
+
+function Stage({n,title,children}){
+  return (
+    <section className="stage">
+      <h2><span className="n">{n}</span>{title}<span className="ln"></span></h2>
+      {children}
+    </section>
+  );
+}
+
+function Result({r}){
+  const s=r.strategy||{};
+  return (
+    <div>
+      <div className="panel rhead">
+        <div className="id">
+          <div className="tk mono">{r.ticker}</div>
+          <div className="co">{r.companyName}</div>
+          <div style={{marginTop:14}}><Verdict view={r.view||{}}/></div>
+        </div>
+        <div className="px">
+          <div className="v mono">{fmtMoney(r.currentPrice)}</div>
+          <div className="as">as of {r.asOf||"—"}</div>
+          <div className="as" style={{maxWidth:280}}>{r.priceContext}</div>
+        </div>
+        <div className="vsum" style={{flexBasis:"100%"}}>{r.view?.summary}</div>
+      </div>
+
+      <Stage n="01" title="Investment Thesis">
+        <div className="triad">
+          <div className="card"><h4>Operational</h4><p>{r.thesis?.operational}</p></div>
+          <div className="card"><h4>Financial</h4><p>{r.thesis?.financial}</p></div>
+          <div className="card"><h4>Valuation</h4><p>{r.thesis?.valuation}</p></div>
+        </div>
+      </Stage>
+
+      <Stage n="02" title="Options Context">
+        <div className="ctx">
+          <div className="stat"><div className="k">IV Environment</div><div className="val">{r.optionsContext?.ivEnvironment||"—"}</div><div className="sub">{r.optionsContext?.ivNote}</div></div>
+          <div className="stat"><div className="k">Next Earnings</div><div className="val" style={{fontSize:15}}>{r.optionsContext?.earnings||"—"}</div></div>
+          <div className="stat"><div className="k">Liquidity</div><div className="val" style={{fontSize:15}}>{(r.optionsContext?.liquidityNote||"").split(" ").slice(0,2).join(" ")||"—"}</div><div className="sub">{r.optionsContext?.liquidityNote}</div></div>
+          <div className="stat"><div className="k">Direction</div><div className="val" style={{color:(DIR_META[r.view?.direction]||DIR_META.Neutral).c}}>{r.view?.direction}</div><div className="sub">{r.view?.conviction} conviction</div></div>
+        </div>
+      </Stage>
+
+      <Stage n="03" title="Recommended Strategy">
+        <div className="panel strat">
+          <div className="sh">
+            <div className="nm">{s.name}</div>
+            <div className="badge">{s.type}</div>
+          </div>
+          <div className="body">
+            <div className="left">
+              <p className="rationale">{s.rationale}</p>
+              <table className="legs">
+                <thead><tr><th>Action</th><th>Leg</th><th>Strike</th><th>Expiry</th><th style={{textAlign:"right"}}>Est. Prem</th></tr></thead>
+                <tbody>
+                  {(s.legs||[]).map((l,i)=>(
+                    <tr key={i}>
+                      <td><span className={"pill "+((l.action||"").toLowerCase()==="buy"?"buy":"sell")}>{l.action}</span></td>
+                      <td className="mono">{l.qty>1?l.qty+"× ":""}{l.right}</td>
+                      <td className="mono">{(l.right||"").toLowerCase()==="stock"?"—":fmtMoney(l.strike)}</td>
+                      <td className="mono" style={{color:"var(--mut)"}}>{l.expiry}</td>
+                      <td className="mono" style={{textAlign:"right"}}>{(l.right||"").toLowerCase()==="stock"?"—":fmtMoney(l.estPremium)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="metrics">
+                <div className="metric profit"><div className="k">Max Profit</div><div className="v">{s.maxProfit}</div></div>
+                <div className="metric loss"><div className="k">Max Loss</div><div className="v">{s.maxLoss}</div></div>
+                <div className="metric" style={{gridColumn:"1/-1"}}><div className="k">Breakeven{(s.breakevens||[]).length>1?"s":""}</div><div className="v mono">{(s.breakevens||[]).map(b=>fmtMoney(b)).join("  ·  ")||"—"}</div></div>
+              </div>
+            </div>
+            <div className="right">
+              <Payoff legs={s.legs||[]} current={r.currentPrice} breakevens={s.breakevens}/>
+            </div>
+          </div>
+          {s.note && <div className="illus">{s.note}</div>}
+        </div>
+      </Stage>
+
+      <Stage n="04" title="Risk / Reward Check">
+        <div className="qa">
+          <div className="qrow"><p className="q">If my thesis is right, what's the profit potential?</p><p className="a">{r.selectionQA?.profitIfRight}</p></div>
+          <div className="qrow"><p className="q">If only partly right, what do I make or lose?</p><p className="a">{r.selectionQA?.profitIfPartlyRight}</p></div>
+          <div className="qrow"><p className="q">How much would I lose if I'm completely wrong?</p><p className="a">{r.selectionQA?.lossIfWrong}</p></div>
+          <div className="qrow"><p className="q">Am I getting paid enough for the risk?</p><p className="a">{r.selectionQA?.paidEnough}</p></div>
+          <div className="qrow" style={{gridColumn:"1/-1"}}><p className="q">Is there a strategy with a better return for this risk?</p><p className="a">{r.selectionQA?.betterAlternative}</p></div>
+        </div>
+      </Stage>
+
+      {(r.alternatives||[]).length>0 &&
+      <Stage n="05" title="Strategies On The Bench">
+        <div className="alt">
+          {r.alternatives.map((a,i)=>(
+            <div className="altchip" key={i}><div className="an">{a.name}</div><div className="aw">{a.whenToUse}</div></div>
+          ))}
+        </div>
+      </Stage>}
+
+      {(r.risks||[]).length>0 &&
+      <Stage n="06" title="What Breaks This Trade">
+        <ul className="risks">{r.risks.map((x,i)=><li key={i}>{x}</li>)}</ul>
+      </Stage>}
+
+      <p className="disclaimer">
+        <b>Educational tool, not financial advice.</b> This is an AI-generated analysis for studying the
+        <i> Options Trading 101</i> framework. Strikes, premiums, payoff figures, and breakevens are illustrative estimates,
+        not a live options chain — verify everything against your broker before risking capital. Options carry substantial
+        risk of loss. Do your own research.
+      </p>
+    </div>
+  );
+}
+
+function App(){
+  const [ticker,setTicker]=useState("");
+  const [view,setView]=useState("Auto");
+  const [risk,setRisk]=useState("Defined");
+  const [horizon,setHorizon]=useState("1–2 months");
+  const [apiKey,setApiKey]=useState("");
+  const [showKey,setShowKey]=useState(false);
+  const [loading,setLoading]=useState(false);
+  const [step,setStep]=useState(0);
+  const [error,setError]=useState("");
+  const [result,setResult]=useState(null);
+  const timer=useRef(null);
+
+  const run=async()=>{
+    const t=ticker.trim();
+    if(!t){ setError("Enter a ticker symbol to analyze."); return; }
+    setError(""); setResult(null); setLoading(true); setStep(0);
+    timer.current=setInterval(()=>setStep(s=>(s+1)%STEPS.length),2200);
+    try{
+      const r=await analyze(t,view,risk,horizon,apiKey.trim());
+      setResult(r);
+    }catch(e){ setError(e.message||"Something went wrong."); }
+    finally{ setLoading(false); clearInterval(timer.current); }
+  };
+  const onKey=e=>{ if(e.key==="Enter"&&!loading) run(); };
+
+  return (
+    <div className="wrap">
+      <div className="top">
+        <div className="brand">
+          <div className="mark"><span className="dot"></span>Strike</div>
+          <div className="tagline">Investment thesis → matched options strategy.</div>
+        </div>
+        <div className="framework">Built on the Options Trading 101 framework · thesis · view · structure · risk/reward</div>
+      </div>
+
+      <div className="panel controls">
+        <div className="field">
+          <label>Ticker</label>
+          <input className="mono" placeholder="AAPL" value={ticker}
+            onChange={e=>setTicker(e.target.value)} onKeyDown={onKey} maxLength={6}/>
+        </div>
+        <div className="field">
+          <label>Your view</label>
+          <select value={view} onChange={e=>setView(e.target.value)}>
+            <option>Auto</option><option>Bullish</option><option>Bearish</option><option>Neutral</option><option>Volatile</option>
+          </select>
+        </div>
+        <div className="field">
+          <label>Risk tolerance</label>
+          <select value={risk} onChange={e=>setRisk(e.target.value)}>
+            <option value="Defined">Defined risk</option>
+            <option value="Limited">Limited / cost-efficient</option>
+            <option value="Any">Open to undefined risk</option>
+          </select>
+        </div>
+        <button className="go" onClick={run} disabled={loading}>{loading?"Analyzing…":"Analyze"}</button>
+      </div>
+
+      <div className="keyrow">
+        <div className="field" style={{flex:"0 0 auto"}}>
+          <label style={{marginBottom:0}}>Horizon</label>
+        </div>
+        <select value={horizon} onChange={e=>setHorizon(e.target.value)}
+          style={{flex:"0 0 auto",background:"var(--ink)",border:"1px solid var(--line2)",color:"var(--txt)",borderRadius:8,padding:"9px 11px",fontFamily:"inherit",fontSize:13}}>
+          <option>2–4 weeks</option><option>1–2 months</option><option>2–3 months</option><option>3–6 months</option>
+        </select>
+        <button className="keytoggle" onClick={()=>setShowKey(v=>!v)}>{showKey?"hide API key":"self-hosting? add API key"}</button>
+        {showKey && <>
+          <input type="password" placeholder="sk-ant-…  (used in your browser only)" value={apiKey} onChange={e=>setApiKey(e.target.value)}/>
+          <span className="keyhint">Only needed when running on your own host (e.g. GitHub Pages). The key stays in your browser and is sent directly to Anthropic — never stored. Inside Claude's artifact preview, leave this blank.</span>
+        </>}
+      </div>
+
+      {loading &&
+        <div className="panel status">
+          <div className="step">{STEPS[step]}</div>
+          <div className="bar"><i></i></div>
+        </div>}
+
+      {error && !loading &&
+        <div className="err"><b>Couldn't analyze.</b> {error}</div>}
+
+      {!loading && !error && !result &&
+        <div className="empty">
+          <h3>Enter a ticker to begin.</h3>
+          <p>Strike researches the underlying, writes an investment thesis across operations, financials, and valuation, commits to a directional view, then picks the single options strategy that fits — with strikes, a payoff diagram, and an honest risk/reward check.</p>
+        </div>}
+
+      {!loading && result && <Result r={result}/>}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
