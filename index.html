@@ -21,63 +21,54 @@
   }
   *{box-sizing:border-box}
   html,body{margin:0;padding:0}
-  body{
-    background:var(--ink); color:var(--txt);
-    font-family:'Hanken Grotesk',system-ui,sans-serif;
-    -webkit-font-smoothing:antialiased; line-height:1.5;
-  }
+  body{background:var(--ink);color:var(--txt);font-family:'Hanken Grotesk',system-ui,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.5}
   .mono{font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
   .wrap{max-width:1080px;margin:0 auto;padding:0 22px 96px}
 
   .top{padding:40px 0 26px;border-bottom:1px solid var(--line)}
   .brand{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
-  .mark{
-    font-weight:800;font-size:30px;letter-spacing:-.02em;
-    display:flex;align-items:center;gap:11px;
-  }
-  .mark .dot{width:11px;height:11px;border-radius:2px;background:var(--gold);
-    box-shadow:0 0 0 4px var(--gold-soft);transform:rotate(45deg)}
+  .mark{font-weight:800;font-size:30px;letter-spacing:-.02em;display:flex;align-items:center;gap:11px}
+  .mark .dot{width:11px;height:11px;border-radius:2px;background:var(--gold);box-shadow:0 0 0 4px var(--gold-soft);transform:rotate(45deg)}
   .tagline{color:var(--mut);font-size:13.5px;letter-spacing:.01em}
   .framework{margin-top:7px;color:var(--mut2);font-size:12px;letter-spacing:.04em;text-transform:uppercase}
 
   .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px}
   .controls{margin-top:26px;padding:18px;display:grid;grid-template-columns:1.4fr 1fr 1fr auto;gap:14px;align-items:end}
   .field label{display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);margin-bottom:7px}
-  .field input,.field select{
-    width:100%;background:var(--ink);border:1px solid var(--line2);color:var(--txt);
-    border-radius:9px;padding:12px 13px;font-size:15px;font-family:inherit;outline:none;transition:border-color .15s,box-shadow .15s;
-  }
+  .field input,.field select{width:100%;background:var(--ink);border:1px solid var(--line2);color:var(--txt);border-radius:9px;padding:12px 13px;font-size:15px;font-family:inherit;outline:none;transition:border-color .15s,box-shadow .15s}
   .field input.mono{letter-spacing:.06em;text-transform:uppercase;font-weight:600}
   .field input:focus,.field select:focus{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-soft)}
-  .field select{appearance:none;cursor:pointer;
-    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4l4 4 4-4' stroke='%238B95A3' stroke-width='1.5' fill='none'/></svg>");
-    background-repeat:no-repeat;background-position:right 13px center;padding-right:34px}
-  .go{
-    background:var(--gold);color:#1a1206;border:none;border-radius:9px;
-    padding:12px 24px;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;
-    height:46px;white-space:nowrap;transition:filter .15s,transform .05s;letter-spacing:.01em;
-  }
+  .field select{appearance:none;cursor:pointer;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4l4 4 4-4' stroke='%238B95A3' stroke-width='1.5' fill='none'/></svg>");background-repeat:no-repeat;background-position:right 13px center;padding-right:34px}
+  .go{background:var(--gold);color:#1a1206;border:none;border-radius:9px;padding:12px 24px;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;height:46px;white-space:nowrap;transition:filter .15s,transform .05s;letter-spacing:.01em}
   .go:hover{filter:brightness(1.08)}
   .go:active{transform:translateY(1px)}
   .go:disabled{opacity:.5;cursor:not-allowed}
 
-  .keyrow{display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap}
-  .keytoggle{background:none;border:none;color:var(--mut);font-size:12px;cursor:pointer;font-family:inherit;text-decoration:underline;text-underline-offset:3px;padding:0}
-  .keyrow input{flex:1;min-width:220px;background:var(--ink);border:1px solid var(--line2);color:var(--txt);border-radius:8px;padding:9px 11px;font-size:13px;font-family:'JetBrains Mono',monospace;outline:none}
-  .keyrow input:focus{border-color:var(--gold)}
-  .keyhint{color:var(--mut2);font-size:11.5px;flex-basis:100%}
+  .subrow{display:flex;align-items:flex-end;gap:14px;margin-top:12px;flex-wrap:wrap}
+  .subrow .field{min-width:140px}
+  .keytoggle{background:none;border:none;color:var(--mut);font-size:12.5px;cursor:pointer;font-family:inherit;text-decoration:underline;text-underline-offset:3px;padding:0 0 13px}
+  .engine-tag{margin-left:auto;font-size:11.5px;color:var(--mut2);padding-bottom:13px}
+  .engine-tag b{color:var(--gold)}
+
+  .keys{margin-top:12px;padding:18px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .keys .head{grid-column:1/-1;font-size:12.5px;color:var(--mut);line-height:1.55}
+  .keys .head b{color:var(--txt)}
+  .keys .field input{font-family:'JetBrains Mono',monospace;font-size:13px;text-transform:none}
+  .keys .get{display:block;margin-top:6px;font-size:11.5px;color:var(--gold);text-decoration:none}
+  .keys .get:hover{text-decoration:underline}
+  .keys .foot{grid-column:1/-1;font-size:11.5px;color:var(--mut2);line-height:1.5;border-top:1px solid var(--line);padding-top:12px}
 
   .status{margin-top:30px;padding:26px;text-align:center;color:var(--mut)}
   .status .bar{height:2px;background:var(--line);border-radius:2px;overflow:hidden;margin:18px auto 0;max-width:340px}
   .status .bar i{display:block;height:100%;width:40%;background:var(--gold);animation:slide 1.3s ease-in-out infinite}
   @keyframes slide{0%{transform:translateX(-100%)}100%{transform:translateX(350%)}}
   .status .step{font-size:14px;letter-spacing:.01em}
-  .err{margin-top:24px;padding:18px 20px;border:1px solid var(--bear);background:var(--bear-soft);border-radius:12px;color:#f2b8b3;font-size:14px}
+  .err{margin-top:24px;padding:18px 20px;border:1px solid var(--bear);background:var(--bear-soft);border-radius:12px;color:#f2b8b3;font-size:14px;line-height:1.55}
   .err b{color:var(--bear)}
 
   .empty{margin-top:34px;padding:46px 30px;text-align:center;border:1px dashed var(--line2);border-radius:14px}
   .empty h3{margin:0 0 8px;font-size:18px;font-weight:600}
-  .empty p{margin:0 auto;max-width:480px;color:var(--mut);font-size:14px}
+  .empty p{margin:0 auto;max-width:520px;color:var(--mut);font-size:14px}
 
   .rhead{margin-top:30px;padding:22px 24px;display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap}
   .rhead .id .tk{font-size:30px;font-weight:800;letter-spacing:-.01em}
@@ -154,11 +145,13 @@
   .disclaimer b{color:var(--mut)}
 
   @media(max-width:840px){
-    .controls{grid-template-columns:1fr 1fr;}
+    .controls{grid-template-columns:1fr 1fr}
     .go{grid-column:1/-1}
+    .keys{grid-template-columns:1fr}
     .triad,.ctx,.qa,.strat .body{grid-template-columns:1fr}
     .strat .left{border-right:none;border-bottom:1px solid var(--line)}
     .rhead .px{text-align:left}
+    .engine-tag{margin-left:0}
   }
 </style>
 </head>
@@ -166,17 +159,17 @@
 <div id="root"></div>
 <script type="text/babel">
 const {useState, useMemo, useRef} = React;
+const NL=String.fromCharCode(10);
 
 const DIR_META = {
-  Bullish:  {c:"var(--bull)", soft:"var(--bull-soft)"},
-  Bearish:  {c:"var(--bear)", soft:"var(--bear-soft)"},
-  Neutral:  {c:"var(--neutral)", soft:"var(--neutral-soft)"},
-  Volatile: {c:"var(--vol)", soft:"var(--vol-soft)"},
+  Bullish:{c:"var(--bull)",soft:"var(--bull-soft)"},
+  Bearish:{c:"var(--bear)",soft:"var(--bear-soft)"},
+  Neutral:{c:"var(--neutral)",soft:"var(--neutral-soft)"},
+  Volatile:{c:"var(--vol)",soft:"var(--vol-soft)"},
 };
-
 const STEPS = [
-  "Pulling current quote & price action…",
-  "Reading the fundamentals — operations, balance sheet, valuation…",
+  "Pulling current quote & fundamentals…",
+  "Reading operations, balance sheet, valuation…",
   "Gauging the volatility environment…",
   "Forming a directional thesis…",
   "Matching the appropriate options strategy…",
@@ -188,62 +181,52 @@ function fmtMoney(n){
   return (n<0?"-$":"$")+a.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
 }
 
-function legPL(leg, S){
-  const sign = (leg.action||"").toLowerCase()==="buy" ? 1 : -1;
-  const k = Number(leg.strike)||0;
-  const prem = Number(leg.estPremium)||0;
-  const qty = Number(leg.qty)||1;
-  const right = (leg.right||"").toLowerCase();
+/* ---------- payoff math ---------- */
+function legPL(leg,S){
+  const sign=(leg.action||"").toLowerCase()==="buy"?1:-1;
+  const k=Number(leg.strike)||0, prem=Number(leg.estPremium)||0, qty=Number(leg.qty)||1;
+  const right=(leg.right||"").toLowerCase();
   let intrinsic;
-  if(right==="call") intrinsic = Math.max(S-k,0);
-  else if(right==="put") intrinsic = Math.max(k-S,0);
-  else intrinsic = S-k;
-  const pl = right==="stock" ? sign*intrinsic : sign*(intrinsic - prem);
+  if(right==="call") intrinsic=Math.max(S-k,0);
+  else if(right==="put") intrinsic=Math.max(k-S,0);
+  else intrinsic=S-k;
+  const pl=right==="stock"?sign*intrinsic:sign*(intrinsic-prem);
   return pl*100*qty;
 }
-function totalPL(legs, S){ return legs.reduce((s,l)=>s+legPL(l,S),0); }
+function totalPL(legs,S){return legs.reduce((s,l)=>s+legPL(l,S),0);}
 
-function Payoff({legs, current, breakevens}){
-  const data = useMemo(()=>{
+function Payoff({legs,current}){
+  const data=useMemo(()=>{
     if(!legs||!legs.length) return null;
-    const strikes = legs.map(l=>Number(l.strike)||0).filter(Boolean);
-    const ref = Number(current)|| (strikes.reduce((a,b)=>a+b,0)/Math.max(strikes.length,1));
-    const lo = Math.max(0.0001, ref*0.7), hi = ref*1.3;
-    const pts=[]; const N=120;
-    for(let i=0;i<=N;i++){ const S=lo+(hi-lo)*i/N; pts.push({S, pl:totalPL(legs,S)}); }
-    const maxPL=Math.max(...pts.map(p=>p.pl)), minPL=Math.min(...pts.map(p=>p.pl));
-    return {pts,lo,hi,ref,maxPL,minPL};
+    const strikes=legs.map(l=>Number(l.strike)||0).filter(Boolean);
+    const ref=Number(current)||(strikes.reduce((a,b)=>a+b,0)/Math.max(strikes.length,1));
+    const lo=Math.max(0.0001,ref*0.7), hi=ref*1.3, pts=[], N=120;
+    for(let i=0;i<=N;i++){const S=lo+(hi-lo)*i/N;pts.push({S,pl:totalPL(legs,S)});}
+    return {pts,lo,hi,ref,maxPL:Math.max(...pts.map(p=>p.pl)),minPL:Math.min(...pts.map(p=>p.pl))};
   },[legs,current]);
   if(!data) return null;
   const W=440,H=240,padL=8,padR=8,padT=14,padB=22;
-  const {pts,lo,hi,maxPL,minPL,ref}=data;
-  const span = (maxPL-minPL)||1;
-  const x = S => padL + (S-lo)/(hi-lo)*(W-padL-padR);
-  const y = pl => padT + (maxPL-pl)/span*(H-padT-padB);
-  const zeroY = y(0);
-  const line = pts.map((p,i)=>`${i?'L':'M'}${x(p.S).toFixed(1)},${y(p.pl).toFixed(1)}`).join(" ");
-  const areaUp = `M${x(lo)},${zeroY} `+pts.map(p=>`L${x(p.S).toFixed(1)},${y(Math.max(p.pl,0)).toFixed(1)}`).join(" ")+` L${x(hi)},${zeroY} Z`;
-  const areaDn = `M${x(lo)},${zeroY} `+pts.map(p=>`L${x(p.S).toFixed(1)},${y(Math.min(p.pl,0)).toFixed(1)}`).join(" ")+` L${x(hi)},${zeroY} Z`;
+  const {pts,lo,hi,maxPL,minPL,ref}=data, span=(maxPL-minPL)||1;
+  const x=S=>padL+(S-lo)/(hi-lo)*(W-padL-padR);
+  const y=pl=>padT+(maxPL-pl)/span*(H-padT-padB);
+  const zeroY=y(0);
+  const line=pts.map((p,i)=>`${i?'L':'M'}${x(p.S).toFixed(1)},${y(p.pl).toFixed(1)}`).join(" ");
+  const areaUp=`M${x(lo)},${zeroY} `+pts.map(p=>`L${x(p.S).toFixed(1)},${y(Math.max(p.pl,0)).toFixed(1)}`).join(" ")+` L${x(hi)},${zeroY} Z`;
+  const areaDn=`M${x(lo)},${zeroY} `+pts.map(p=>`L${x(p.S).toFixed(1)},${y(Math.min(p.pl,0)).toFixed(1)}`).join(" ")+` L${x(hi)},${zeroY} Z`;
   return (
     <div>
       <p className="payoff-cap">Payoff at expiration · per spread</p>
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{display:"block"}}>
         <defs>
-          <linearGradient id="up" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#3FB68B" stopOpacity="0.28"/>
-            <stop offset="100%" stopColor="#3FB68B" stopOpacity="0"/>
-          </linearGradient>
-          <linearGradient id="dn" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#E5544B" stopOpacity="0"/>
-            <stop offset="100%" stopColor="#E5544B" stopOpacity="0.28"/>
-          </linearGradient>
+          <linearGradient id="up" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#3FB68B" stopOpacity="0.28"/><stop offset="100%" stopColor="#3FB68B" stopOpacity="0"/></linearGradient>
+          <linearGradient id="dn" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#E5544B" stopOpacity="0"/><stop offset="100%" stopColor="#E5544B" stopOpacity="0.28"/></linearGradient>
         </defs>
         <path d={areaUp} fill="url(#up)"/>
         <path d={areaDn} fill="url(#dn)"/>
         <line x1={padL} y1={zeroY} x2={W-padR} y2={zeroY} stroke="#3a4452" strokeWidth="1" strokeDasharray="3 3"/>
         <line x1={x(ref)} y1={padT} x2={x(ref)} y2={H-padB} stroke="#E0A645" strokeWidth="1" strokeOpacity="0.5" strokeDasharray="2 4"/>
         <text x={x(ref)} y={H-7} fill="#E0A645" fontSize="10" textAnchor="middle" fontFamily="'JetBrains Mono',monospace">{Number(ref).toFixed(0)}</text>
-        {legs.map((l,i)=>{ const k=Number(l.strike); if(!k||(l.right||"").toLowerCase()==="stock")return null;
+        {legs.map((l,i)=>{const k=Number(l.strike);if(!k||(l.right||"").toLowerCase()==="stock")return null;
           return <line key={i} x1={x(k)} y1={zeroY-5} x2={x(k)} y2={zeroY+5} stroke="#5E6876" strokeWidth="1.5"/>;})}
         <path d={line} fill="none" stroke="#E8EAED" strokeWidth="2" strokeLinejoin="round"/>
       </svg>
@@ -256,76 +239,130 @@ function Payoff({legs, current, breakevens}){
   );
 }
 
-async function analyze(ticker, view, risk, horizon, apiKey){
-  const today = new Date().toISOString().slice(0,10);
-  const schema = `{
+/* ---------- shared prompt ---------- */
+const SCHEMA = `{
 "ticker": string, "companyName": string, "currentPrice": number, "asOf": string (YYYY-MM-DD),
-"priceContext": string (one line on recent price action / trend / 52w range),
+"priceContext": string (one line: recent trend / 52w range position),
 "view": {"direction": "Bullish"|"Bearish"|"Neutral"|"Volatile", "conviction": "Low"|"Medium"|"High", "horizon": string, "summary": string (2-3 sentences tying thesis to expected move)},
-"thesis": {"operational": string (2-3 sentences: competitive position, products, moat, threats), "financial": string (2-3 sentences: balance sheet, margins, ROIC, capital allocation), "valuation": string (2-3 sentences: P/E, EV/EBITDA vs history & peers, fair value read)},
-"optionsContext": {"ivEnvironment": "Low"|"Moderate"|"Elevated"|"High", "ivNote": string (short), "earnings": string (next earnings date or 'n/a' + whether it falls before expiry), "liquidityNote": string (short, options liquidity)},
-"strategy": {"name": string, "type": string (e.g. 'Vertical debit spread'), "rationale": string (3-4 sentences mapping the view+IV+risk to this exact structure), 
-  "legs": [{"action":"Buy"|"Sell","right":"Call"|"Put"|"Stock","strike": number,"expiry": string,"estPremium": number (per share; 0 for Stock leg, and set strike=entry price for Stock),"qty": number}],
-  "maxProfit": string, "maxLoss": string, "breakevens": [number], "note": string (one line: strikes/premiums are illustrative estimates)},
-"selectionQA": {"profitIfRight": string, "profitIfPartlyRight": string, "lossIfWrong": string, "paidEnough": string (is the risk/reward worth it), "betterAlternative": string},
+"thesis": {"operational": string (2-3 sentences), "financial": string (2-3 sentences), "valuation": string (2-3 sentences)},
+"optionsContext": {"ivEnvironment": "Low"|"Moderate"|"Elevated"|"High", "ivNote": string, "earnings": string, "liquidityNote": string},
+"strategy": {"name": string, "type": string, "rationale": string (3-4 sentences mapping view+IV+risk to this structure),
+  "legs": [{"action":"Buy"|"Sell","right":"Call"|"Put"|"Stock","strike": number,"expiry": string,"estPremium": number (per share; 0 for Stock leg with strike=entry price),"qty": number}],
+  "maxProfit": string, "maxLoss": string, "breakevens": [number], "note": string},
+"selectionQA": {"profitIfRight": string, "profitIfPartlyRight": string, "lossIfWrong": string, "paidEnough": string, "betterAlternative": string},
 "alternatives": [{"name": string, "whenToUse": string}],
 "risks": [string, string, string]
 }`;
-  const sys = `You are a disciplined options strategist. Today is ${today}. Use web_search to gather the most recent data for the requested US-listed stock: current/last price, recent trend and 52-week range, fundamentals (financial position, debt, margins, ROIC, P/E and EV/EBITDA vs history and peers), the next earnings date, and the implied-volatility environment (IV rank/level, whether elevated or cheap). Then follow this exact process from "Options Trading 101": (1) build an investment thesis across Operational, Financial, and Valuation dimensions; (2) commit to a single directional/volatility VIEW; (3) select the SINGLE most appropriate options strategy for that view, the IV environment, and the trader's stated risk tolerance, then answer the strategy-selection questions honestly. Pick realistic near-the-money strikes and a concrete expiry consistent with the horizon (~30-60 DTE unless told otherwise); express expiry as an approximate date. If exact option premiums are unavailable, estimate them from price and IV and flag them as illustrative. Be decisive and concrete with numbers. Return ONLY valid minified JSON matching this schema, no markdown, no prose outside JSON:\n${schema}`;
-  const userView = view==="Auto" ? "Let the analysis determine the view." : `The trader leans ${view}; pressure-test that view but you may override it if the data disagrees.`;
-  const riskTxt = {Defined:"prefers strictly defined / capped risk (spreads, long premium).", Limited:"accepts limited risk but wants efficient cost.", Any:"is comfortable with undefined-risk strategies if justified (e.g. naked short premium)."}[risk]||"";
-  const user = `Stock: ${ticker.toUpperCase()}. ${userView} Risk profile: the trader ${riskTxt} Horizon: ${horizon}. Produce the full JSON analysis.`;
 
-  const headers = {"Content-Type":"application/json"};
-  if(apiKey){ headers["x-api-key"]=apiKey; headers["anthropic-version"]="2023-06-01"; headers["anthropic-dangerous-direct-browser-access"]="true"; }
+function viewLine(view){ return view==="Auto"?"Let the analysis determine the view.":`The trader leans ${view}; pressure-test it but you may override it if the data disagrees.`; }
+function riskLine(risk){ return ({Defined:"The trader prefers strictly defined / capped risk (spreads, long premium).",Limited:"The trader accepts limited risk but wants cost efficiency.",Any:"The trader is comfortable with undefined-risk strategies if justified."})[risk]||""; }
 
-  const res = await fetch("https://api.anthropic.com/v1/messages",{
-    method:"POST", headers,
-    body: JSON.stringify({
-      model:"claude-sonnet-4-6",
-      max_tokens:4096,
-      system: sys,
-      messages:[{role:"user", content:user}],
-      tools:[{type:"web_search_20250305", name:"web_search", max_uses:6}]
-    })
+function extractJSON(text){
+  let j=(text||"").trim();
+  const f=j.indexOf("{"), l=j.lastIndexOf("}");
+  if(f>=0&&l>f) j=j.slice(f,l+1);
+  var fence=new RegExp(String.fromCharCode(96).repeat(3)+"(json)?","g");
+  j=j.replace(fence,"").trim();
+  return JSON.parse(j);
+}
+
+/* ---------- engine A: Claude (artifact, no key) ---------- */
+async function analyzeClaude(ticker,view,risk,horizon){
+  const today=new Date().toISOString().slice(0,10);
+  const sys=`You are a disciplined options strategist. Today is ${today}. Use web_search to gather the most recent data for the requested US-listed stock: current price, trend and 52-week range, fundamentals (debt, margins, ROIC, P/E and EV/EBITDA vs history and peers), next earnings date, and the implied-volatility environment. Then follow the "Options Trading 101" process: (1) build an investment thesis across Operational, Financial, and Valuation dimensions; (2) commit to a single directional/volatility VIEW; (3) select the SINGLE most appropriate options strategy for that view, the IV environment, and the trader's risk tolerance, then answer the strategy-selection questions honestly. Pick realistic near-the-money strikes and a concrete expiry (~30-60 DTE unless told otherwise) as an approximate date. If exact premiums are unavailable, estimate them and flag as illustrative. Return ONLY valid minified JSON matching this schema, no markdown:
+${SCHEMA}`;
+  const user=`Stock: ${ticker.toUpperCase()}. ${viewLine(view)} ${riskLine(risk)} Horizon: ${horizon}. Produce the full JSON analysis.`;
+  const res=await fetch("https://api.anthropic.com/v1/messages",{
+    method:"POST", headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:4096,system:sys,messages:[{role:"user",content:user}],tools:[{type:"web_search_20250305",name:"web_search",max_uses:6}]})
   });
   if(!res.ok){
-    let detail=""; try{ const e=await res.json(); detail=e?.error?.message||""; }catch{}
-    if(res.status===401) throw new Error("Unauthorized. If you're running this on GitHub Pages or your own host, add your Anthropic API key below.");
-    if(res.status===429) throw new Error("Rate limited. Wait a moment and try again."+(detail?" ("+detail+")":""));
-    throw new Error(`Request failed (${res.status}).`+(detail?" "+detail:""));
+    if(res.status===401) throw new Error("Claude isn't reachable here without a key. If you're on GitHub Pages, switch to the free engine: open “API keys” and paste a free Gemini + Finnhub key.");
+    throw new Error(`Claude request failed (${res.status}).`);
   }
-  const data = await res.json();
-  const text = (data.content||[]).filter(b=>b.type==="text").map(b=>b.text).join("\n").trim();
+  const data=await res.json();
+  const text=(data.content||[]).filter(b=>b.type==="text").map(b=>b.text).join(NL).trim();
   if(!text) throw new Error("No analysis returned. Try again.");
-  let json = text;
-  const f = json.indexOf("{"), l = json.lastIndexOf("}");
-  if(f>=0 && l>f) json = json.slice(f,l+1);
-  json = json.replace(/```json|```/g,"").trim();
-  try{ return JSON.parse(json); }
-  catch(e){ throw new Error("Couldn't parse the analysis. Try again — the model occasionally returns malformed output."); }
+  let r; try{ r=extractJSON(text); }catch{ throw new Error("Couldn't parse Claude's output. Try again."); }
+  r._engine="Claude · web search";
+  return r;
 }
 
+/* ---------- engine B: Gemini + Finnhub (free keys) ---------- */
+async function fhub(path,params,key){
+  const u=new URL("https://finnhub.io/api/v1/"+path);
+  Object.entries(params).forEach(([k,v])=>u.searchParams.set(k,v));
+  u.searchParams.set("token",key);
+  const r=await fetch(u.toString());
+  if(r.status===401||r.status===403) throw new Error("Finnhub key was rejected — double-check it.");
+  if(r.status===429) throw new Error("Finnhub rate limit hit (free tier ≈ 60/min). Wait a few seconds.");
+  if(!r.ok) throw new Error(`Finnhub request failed (${r.status}).`);
+  return r.json();
+}
+async function analyzeGemini(ticker,view,risk,horizon,geminiKey,finnhubKey){
+  const sym=ticker.toUpperCase().trim();
+  const today=new Date().toISOString().slice(0,10);
+  let quote=null,profile=null,metric=null,nextER=null;
+  const lines=[];
+  if(finnhubKey){
+    quote=await fhub("quote",{symbol:sym},finnhubKey);
+    if(!quote||!quote.c) throw new Error(`No price data for “${sym}”. Check the ticker — the free Finnhub tier covers US-listed symbols.`);
+    try{ profile=await fhub("stock/profile2",{symbol:sym},finnhubKey); }catch{}
+    try{ metric=(await fhub("stock/metric",{symbol:sym,metric:"all"},finnhubKey)).metric; }catch{}
+    try{
+      const fmt=d=>d.toISOString().slice(0,10);
+      const ec=await fhub("calendar/earnings",{from:fmt(new Date()),to:fmt(new Date(Date.now()+120*864e5)),symbol:sym},finnhubKey);
+      nextER=(ec.earningsCalendar||[]).map(e=>e.date).filter(Boolean).sort()[0]||null;
+    }catch{}
+    lines.push(`Price: $${quote.c} (prev close $${quote.pc}, day ${quote.l}–${quote.h}, change ${quote.dp}%)`);
+    if(profile) lines.push(`Company: ${profile.name} | Industry: ${profile.finnhubIndustry||"n/a"} | Mkt cap: ${profile.marketCapitalization?("$"+Math.round(profile.marketCapitalization)+"M"):"n/a"} | Exchange: ${profile.exchange||"n/a"}`);
+    if(metric){
+      const m=metric, P=(k,l,suf="")=> (m[k]!=null?`${l} ${typeof m[k]==="number"?Number(m[k]).toFixed(2):m[k]}${suf}`:null);
+      const items=[P("peTTM","P/E"),P("psTTM","P/S"),P("pbAnnual","P/B"),P("52WeekHigh","52wHi $"),P("52WeekLow","52wLo $"),P("roiTTM","ROIC","%"),P("roeTTM","ROE","%"),P("grossMarginTTM","GrossMgn","%"),P("netProfitMarginTTM","NetMgn","%"),P("totalDebt/totalEquityQuarterly","D/E"),P("currentRatioQuarterly","CurrRatio"),P("dividendYieldIndicatedAnnual","DivYld","%")].filter(Boolean);
+      if(items.length) lines.push("Fundamentals — "+items.join(" | "));
+    }
+    if(nextER) lines.push(`Next earnings (approx): ${nextER}`);
+  }
+  const dataBlock=lines.length
+    ? `LIVE MARKET DATA (authoritative — use these exact figures, especially price):
+${lines.join(NL)}`
+    : `No live data feed supplied; estimate figures from your own knowledge and clearly flag them as estimates.`;
+  const sys=`You are a disciplined options strategist following the "Options Trading 101" process. Today is ${today}. You do NOT have web access — treat the supplied LIVE MARKET DATA as the source of truth for price and fundamentals, and use your own knowledge for qualitative thesis (note if anything may be dated). Steps: (1) investment thesis across Operational, Financial, Valuation; (2) commit to one directional/volatility VIEW; (3) pick the SINGLE best options strategy for that view, the IV environment, and the trader's risk tolerance, then answer the selection questions honestly. Implied volatility isn't in the feed — infer the IV environment qualitatively and flag it as an estimate. Choose realistic near-the-money strikes around the live price and a concrete expiry (~30-60 DTE unless told otherwise) as an approximate date; estimate premiums and flag them illustrative. Output ONLY valid minified JSON matching this schema, nothing else:
+${SCHEMA}`;
+  const user=`Stock: ${sym}. ${viewLine(view)} ${riskLine(risk)} Horizon: ${horizon}.
+
+${dataBlock}
+
+Produce the full JSON analysis. Set "currentPrice" to the exact live price above.`;
+  const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(geminiKey)}`,{
+    method:"POST", headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({systemInstruction:{parts:[{text:sys}]},contents:[{role:"user",parts:[{text:user}]}],generationConfig:{responseMimeType:"application/json",maxOutputTokens:4096,temperature:0.45}})
+  });
+  if(!res.ok){
+    let d=""; try{ d=(await res.json())?.error?.message||""; }catch{}
+    if(res.status===400) throw new Error("Gemini rejected the request — usually a bad API key. "+d);
+    if(res.status===429) throw new Error("Gemini free-tier rate limit hit. Wait a minute and retry.");
+    throw new Error(`Gemini request failed (${res.status}). ${d}`);
+  }
+  const data=await res.json();
+  if(data.promptFeedback?.blockReason) throw new Error("Gemini blocked the response. Try a different ticker.");
+  const text=(data.candidates?.[0]?.content?.parts||[]).map(p=>p.text||"").join("").trim();
+  if(!text) throw new Error("Gemini returned no analysis. Try again.");
+  let r; try{ r=extractJSON(text); }catch{ throw new Error("Couldn't parse Gemini's output. Try again."); }
+  if(quote&&quote.c) r.currentPrice=quote.c;
+  if(profile&&profile.name) r.companyName=profile.name;
+  r.ticker=sym; r.asOf=today; r._engine=finnhubKey?"Gemini 2.5 Flash · Finnhub data":"Gemini 2.5 Flash · no live feed";
+  return r;
+}
+
+/* ---------- presentation ---------- */
 function Verdict({view}){
-  const m = DIR_META[view.direction]||DIR_META.Neutral;
-  return (
-    <span className="verdict" style={{background:m.soft, color:m.c}}>
-      <span className="pip" style={{background:m.c}}></span>
-      {view.direction}
-      <span className="conv">· {view.conviction} conviction · {view.horizon}</span>
-    </span>
-  );
+  const m=DIR_META[view.direction]||DIR_META.Neutral;
+  return <span className="verdict" style={{background:m.soft,color:m.c}}><span className="pip" style={{background:m.c}}></span>{view.direction}<span className="conv">· {view.conviction} conviction · {view.horizon}</span></span>;
 }
-
 function Stage({n,title,children}){
-  return (
-    <section className="stage">
-      <h2><span className="n">{n}</span>{title}<span className="ln"></span></h2>
-      {children}
-    </section>
-  );
+  return <section className="stage"><h2><span className="n">{n}</span>{title}<span className="ln"></span></h2>{children}</section>;
 }
-
 function Result({r}){
   const s=r.strategy||{};
   return (
@@ -333,7 +370,7 @@ function Result({r}){
       <div className="panel rhead">
         <div className="id">
           <div className="tk mono">{r.ticker}</div>
-          <div className="co">{r.companyName}</div>
+          <div className="co">{r.companyName}{r._engine?<span style={{color:"var(--mut2)"}}> · {r._engine}</span>:null}</div>
           <div style={{marginTop:14}}><Verdict view={r.view||{}}/></div>
         </div>
         <div className="px">
@@ -363,10 +400,7 @@ function Result({r}){
 
       <Stage n="03" title="Recommended Strategy">
         <div className="panel strat">
-          <div className="sh">
-            <div className="nm">{s.name}</div>
-            <div className="badge">{s.type}</div>
-          </div>
+          <div className="sh"><div className="nm">{s.name}</div><div className="badge">{s.type}</div></div>
           <div className="body">
             <div className="left">
               <p className="rationale">{s.rationale}</p>
@@ -390,9 +424,7 @@ function Result({r}){
                 <div className="metric" style={{gridColumn:"1/-1"}}><div className="k">Breakeven{(s.breakevens||[]).length>1?"s":""}</div><div className="v mono">{(s.breakevens||[]).map(b=>fmtMoney(b)).join("  ·  ")||"—"}</div></div>
               </div>
             </div>
-            <div className="right">
-              <Payoff legs={s.legs||[]} current={r.currentPrice} breakevens={s.breakevens}/>
-            </div>
+            <div className="right"><Payoff legs={s.legs||[]} current={r.currentPrice}/></div>
           </div>
           {s.note && <div className="illus">{s.note}</div>}
         </div>
@@ -410,11 +442,7 @@ function Result({r}){
 
       {(r.alternatives||[]).length>0 &&
       <Stage n="05" title="Strategies On The Bench">
-        <div className="alt">
-          {r.alternatives.map((a,i)=>(
-            <div className="altchip" key={i}><div className="an">{a.name}</div><div className="aw">{a.whenToUse}</div></div>
-          ))}
-        </div>
+        <div className="alt">{r.alternatives.map((a,i)=><div className="altchip" key={i}><div className="an">{a.name}</div><div className="aw">{a.whenToUse}</div></div>)}</div>
       </Stage>}
 
       {(r.risks||[]).length>0 &&
@@ -423,10 +451,7 @@ function Result({r}){
       </Stage>}
 
       <p className="disclaimer">
-        <b>Educational tool, not financial advice.</b> This is an AI-generated analysis for studying the
-        <i> Options Trading 101</i> framework. Strikes, premiums, payoff figures, and breakevens are illustrative estimates,
-        not a live options chain — verify everything against your broker before risking capital. Options carry substantial
-        risk of loss. Do your own research.
+        <b>Educational tool, not financial advice.</b> AI-generated analysis built on the <i>Options Trading 101</i> framework. Strikes, premiums, payoff figures, breakevens, and the IV read are illustrative estimates — not a live options chain. Verify against your broker before risking capital. Options carry substantial risk of loss. Do your own research.
       </p>
     </div>
   );
@@ -437,13 +462,16 @@ function App(){
   const [view,setView]=useState("Auto");
   const [risk,setRisk]=useState("Defined");
   const [horizon,setHorizon]=useState("1–2 months");
-  const [apiKey,setApiKey]=useState("");
-  const [showKey,setShowKey]=useState(false);
+  const [geminiKey,setGeminiKey]=useState("");
+  const [finnhubKey,setFinnhubKey]=useState("");
+  const [showKeys,setShowKeys]=useState(false);
   const [loading,setLoading]=useState(false);
   const [step,setStep]=useState(0);
   const [error,setError]=useState("");
   const [result,setResult]=useState(null);
   const timer=useRef(null);
+
+  const usingFree=!!geminiKey.trim();
 
   const run=async()=>{
     const t=ticker.trim();
@@ -451,7 +479,9 @@ function App(){
     setError(""); setResult(null); setLoading(true); setStep(0);
     timer.current=setInterval(()=>setStep(s=>(s+1)%STEPS.length),2200);
     try{
-      const r=await analyze(t,view,risk,horizon,apiKey.trim());
+      const r=usingFree
+        ? await analyzeGemini(t,view,risk,horizon,geminiKey.trim(),finnhubKey.trim())
+        : await analyzeClaude(t,view,risk,horizon);
       setResult(r);
     }catch(e){ setError(e.message||"Something went wrong."); }
     finally{ setLoading(false); clearInterval(timer.current); }
@@ -469,48 +499,46 @@ function App(){
       </div>
 
       <div className="panel controls">
-        <div className="field">
-          <label>Ticker</label>
-          <input className="mono" placeholder="AAPL" value={ticker}
-            onChange={e=>setTicker(e.target.value)} onKeyDown={onKey} maxLength={6}/>
-        </div>
-        <div className="field">
-          <label>Your view</label>
+        <div className="field"><label>Ticker</label>
+          <input className="mono" placeholder="AAPL" value={ticker} onChange={e=>setTicker(e.target.value)} onKeyDown={onKey} maxLength={6}/></div>
+        <div className="field"><label>Your view</label>
           <select value={view} onChange={e=>setView(e.target.value)}>
             <option>Auto</option><option>Bullish</option><option>Bearish</option><option>Neutral</option><option>Volatile</option>
-          </select>
-        </div>
-        <div className="field">
-          <label>Risk tolerance</label>
+          </select></div>
+        <div className="field"><label>Risk tolerance</label>
           <select value={risk} onChange={e=>setRisk(e.target.value)}>
-            <option value="Defined">Defined risk</option>
-            <option value="Limited">Limited / cost-efficient</option>
-            <option value="Any">Open to undefined risk</option>
-          </select>
-        </div>
+            <option value="Defined">Defined risk</option><option value="Limited">Limited / cost-efficient</option><option value="Any">Open to undefined risk</option>
+          </select></div>
         <button className="go" onClick={run} disabled={loading}>{loading?"Analyzing…":"Analyze"}</button>
       </div>
 
-      <div className="keyrow">
-        <div className="field" style={{flex:"0 0 auto"}}>
-          <label style={{marginBottom:0}}>Horizon</label>
-        </div>
-        <select value={horizon} onChange={e=>setHorizon(e.target.value)}
-          style={{flex:"0 0 auto",background:"var(--ink)",border:"1px solid var(--line2)",color:"var(--txt)",borderRadius:8,padding:"9px 11px",fontFamily:"inherit",fontSize:13}}>
-          <option>2–4 weeks</option><option>1–2 months</option><option>2–3 months</option><option>3–6 months</option>
-        </select>
-        <button className="keytoggle" onClick={()=>setShowKey(v=>!v)}>{showKey?"hide API key":"self-hosting? add API key"}</button>
-        {showKey && <>
-          <input type="password" placeholder="sk-ant-…  (used in your browser only)" value={apiKey} onChange={e=>setApiKey(e.target.value)}/>
-          <span className="keyhint">Only needed when running on your own host (e.g. GitHub Pages). The key stays in your browser and is sent directly to Anthropic — never stored. Inside Claude's artifact preview, leave this blank.</span>
-        </>}
+      <div className="subrow">
+        <div className="field"><label>Horizon</label>
+          <select value={horizon} onChange={e=>setHorizon(e.target.value)}>
+            <option>2–4 weeks</option><option>1–2 months</option><option>2–3 months</option><option>3–6 months</option>
+          </select></div>
+        <button className="keytoggle" onClick={()=>setShowKeys(v=>!v)}>{showKeys?"hide API keys":"API keys (free engine / hosting)"}</button>
+        <span className="engine-tag">engine: <b>{usingFree?"Gemini + Finnhub (free)":"Claude"}</b></span>
       </div>
 
+      {showKeys &&
+      <div className="panel keys">
+        <div className="head"><b>Run it free, anywhere.</b> Leave blank inside Claude — it uses Claude directly. To host on GitHub Pages (or run the file yourself), paste two free keys below. No credit card needed for either.</div>
+        <div className="field">
+          <label>Gemini API key — the analyst</label>
+          <input type="password" placeholder="AIza…" value={geminiKey} onChange={e=>setGeminiKey(e.target.value)}/>
+          <a className="get" href="https://aistudio.google.com/apikey" target="_blank" rel="noreferrer">→ get a free key at aistudio.google.com</a>
+        </div>
+        <div className="field">
+          <label>Finnhub API key — live price & fundamentals</label>
+          <input type="password" placeholder="c…" value={finnhubKey} onChange={e=>setFinnhubKey(e.target.value)}/>
+          <a className="get" href="https://finnhub.io/register" target="_blank" rel="noreferrer">→ get a free key at finnhub.io</a>
+        </div>
+        <div className="foot">Keys stay in your browser, sent directly to Google / Finnhub — never stored or committed. Once a Gemini key is present, Strike switches to the free engine automatically. The Finnhub key is optional but strongly recommended, otherwise prices are estimated rather than live.</div>
+      </div>}
+
       {loading &&
-        <div className="panel status">
-          <div className="step">{STEPS[step]}</div>
-          <div className="bar"><i></i></div>
-        </div>}
+        <div className="panel status"><div className="step">{STEPS[step]}</div><div className="bar"><i></i></div></div>}
 
       {error && !loading &&
         <div className="err"><b>Couldn't analyze.</b> {error}</div>}
