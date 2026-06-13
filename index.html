@@ -90,6 +90,10 @@
   .card{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:18px}
   .card h4{margin:0 0 9px;font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--gold);font-weight:600}
   .card p{margin:0;color:#cfd5dd;font-size:14px;line-height:1.62}
+  .tq{margin-top:13px}
+  .tq:first-of-type{margin-top:4px}
+  .tq-q{font-size:11.5px;font-weight:600;color:var(--gold);line-height:1.4}
+  .tq-a{font-size:13px;color:#cfd5dd;line-height:1.55;margin-top:3px}
 
   .ctx{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
   .stat{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:16px}
@@ -189,6 +193,45 @@
 const {useState, useMemo, useRef} = React;
 const NL=String.fromCharCode(10);
 
+const THESIS_Q = {
+  operational: [
+    "How is the company positioned relative to its peers - a new company or an established cash cow, a leader or a second-tier player?",
+    "Are the company's products well regarded, and do they command higher prices in the market?",
+    "Does the company have a sustainable competitive advantage, especially one that can last decades?",
+    "Have the company's margins held up over time, or do they indicate a deteriorating business?",
+    "What are the competitive threats on the horizon? Could an unforeseen development derail the business?"
+  ],
+  financial: [
+    "What is the financial position of the company - is it heavily indebted, or does it have a lot of cash?",
+    "What do the key financial ratios say about its position - debt to equity, debt to EBITDA, return on equity?",
+    "What does the return on invested capital say about its competitive position? Has that ratio been rising or falling?",
+    "Has the company used its cash smartly, or has it blown money on poor acquisitions?",
+    "Has the company repurchased stock, and done so smartly?"
+  ],
+  valuation: [
+    "Does the market award the stock a high or low valuation on measures such as price-to-earnings and enterprise-value-to-EBITDA?",
+    "Is the valuation high or low relative to this company's own history?",
+    "Are insiders buying stock in significant amounts (suggesting the price may be low), or selling as fast as they can?",
+    "Is the stock price high, low, or somewhere in the middle, relative to its recent history?",
+    "What is the fair value for the stock?"
+  ]
+};
+const SELECT_Q = [
+  "If my investment thesis is right, what is the profit potential of this strategy?",
+  "If my thesis is only partially right, how much money could I make or lose?",
+  "How much money would I reasonably lose if my thesis is completely wrong?",
+  "Am I willing to take the risk for the potential upside? Am I getting paid enough?",
+  "What other options strategies overlay well with my expectations for the stock?",
+  "Is there another strategy that delivers a better return for the risk I'm willing to take?",
+  "Can I give this strategy a better return for the risk if I adjust the strike prices?"
+];
+const STRATEGY_MENU = "Long Call, Short Call, Long Put, Short Put, Covered Call, Protective Put, Synthetic Long, Synthetic Short, Long Straddle, Short Straddle, Long Strangle, Short Strangle, Collar, Bull Call Spread, Bear Put Spread, Bear Call Spread, Bull Put Spread, Long Calendar Spread with Calls, Long Diagonal Spread with Calls, Long Butterfly Spread with Calls, Short Butterfly Spread with Calls, Long Iron Butterfly Spread, Long Condor Spread with Calls, Short Condor Spread with Calls";
+const Q_BLOCK = `Follow the "Options Trading 101" process. STEP 1 - ANALYZE THE COMPANY: answer every one of these questions, specifically and concisely, in this exact order.
+OPERATIONAL: ${THESIS_Q.operational.map((q,i)=>(i+1)+") "+q).join("  ")}
+FINANCIAL: ${THESIS_Q.financial.map((q,i)=>(i+1)+") "+q).join("  ")}
+VALUATION: ${THESIS_Q.valuation.map((q,i)=>(i+1)+") "+q).join("  ")}
+STEP 2 - commit to a directional/volatility VIEW. STEP 3 - select the SINGLE most appropriate strategy (its name MUST be exactly one from the menu), then answer these selection questions in order: ${SELECT_Q.map((q,i)=>(i+1)+") "+q).join("  ")}`;
+
 const DIR_META = {
   Bullish:{c:"var(--bull)",soft:"var(--bull-soft)"},
   Bearish:{c:"var(--bear)",soft:"var(--bear-soft)"},
@@ -272,13 +315,13 @@ const SCHEMA = `{
 "ticker": string, "companyName": string, "currentPrice": number, "asOf": string (YYYY-MM-DD),
 "priceContext": string (one line: recent trend / 52w range position),
 "view": {"direction": "Bullish"|"Bearish"|"Neutral"|"Volatile", "conviction": "Low"|"Medium"|"High", "horizon": string, "summary": string (2-3 sentences tying thesis to expected move)},
-"thesis": {"operational": string (2-3 sentences), "financial": string (2-3 sentences), "valuation": string (2-3 sentences)},
+"thesis": {"operational": [5 strings answering OPERATIONAL questions 1-5 in order], "financial": [5 strings answering FINANCIAL questions 1-5 in order], "valuation": [5 strings answering VALUATION questions 1-5 in order]},
 "optionsContext": {"ivEnvironment": "Low"|"Moderate"|"Elevated"|"High", "ivNote": string, "earnings": string, "liquidityNote": string},
-"strategy": {"name": string, "type": string, "rationale": string (3-4 sentences mapping view+IV+risk to this structure),
+"strategy": {"name": string (MUST be EXACTLY one of: ${STRATEGY_MENU}), "type": string, "rationale": string (3-4 sentences mapping view+IV+risk to this structure),
   "legs": [{"action":"Buy"|"Sell","right":"Call"|"Put"|"Stock","strike": number,"expiry": string,"estPremium": number (per share; 0 for Stock leg with strike=entry price),"qty": number}],
   "maxProfit": string, "maxLoss": string, "breakevens": [number], "note": string},
-"selectionQA": {"profitIfRight": string, "profitIfPartlyRight": string, "lossIfWrong": string, "paidEnough": string, "betterAlternative": string},
-"alternatives": [{"name": string, "whenToUse": string}],
+"selectionQA": [7 strings answering SELECTION questions 1-7 in order],
+"alternatives": [{"name": string (also from the strategy menu), "whenToUse": string}],
 "risks": [string, string, string]
 }`;
 
@@ -297,12 +340,12 @@ function extractJSON(text){
 /* ---------- engine A: Claude (artifact, no key) ---------- */
 async function analyzeClaude(ticker,view,risk,horizon){
   const today=new Date().toISOString().slice(0,10);
-  const sys=`You are a disciplined options strategist. Today is ${today}. Use web_search to gather the most recent data for the requested US-listed stock: current price, trend and 52-week range, fundamentals (debt, margins, ROIC, P/E and EV/EBITDA vs history and peers), next earnings date, and the implied-volatility environment. Then follow the "Options Trading 101" process: (1) build an investment thesis across Operational, Financial, and Valuation dimensions; (2) commit to a single directional/volatility VIEW; (3) select the SINGLE most appropriate options strategy for that view, the IV environment, and the trader's risk tolerance, then answer the strategy-selection questions honestly. Pick realistic near-the-money strikes and a concrete expiry (~30-60 DTE unless told otherwise) as an approximate date. If exact premiums are unavailable, estimate them and flag as illustrative. Return ONLY valid minified JSON matching this schema, no markdown:
+  const sys=`You are a disciplined options strategist. Today is ${today}. Use web_search to gather the most recent data for the requested US-listed stock: current price, trend and 52-week range, fundamentals (debt, cash, margins, ROE, ROIC, P/E and EV/EBITDA vs history and peers, buybacks, insider activity), next earnings date, and the implied-volatility environment. ${Q_BLOCK} Pick realistic near-the-money strikes and a concrete expiry (~30-60 DTE unless told otherwise) as an approximate date. If exact premiums are unavailable, estimate them and flag as illustrative. In the JSON, thesis.operational/financial/valuation are arrays whose entries answer the questions above IN ORDER, and selectionQA is an array whose entries answer the selection questions IN ORDER. Return ONLY valid minified JSON matching this schema, no markdown:
 ${SCHEMA}`;
   const user=`Stock: ${ticker.toUpperCase()}. ${viewLine(view)} ${riskLine(risk)} Horizon: ${horizon}. Produce the full JSON analysis.`;
   const res=await fetch("https://api.anthropic.com/v1/messages",{
     method:"POST", headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:4096,system:sys,messages:[{role:"user",content:user}],tools:[{type:"web_search_20250305",name:"web_search",max_uses:6}]})
+    body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:8192,system:sys,messages:[{role:"user",content:user}],tools:[{type:"web_search_20250305",name:"web_search",max_uses:6}]})
   });
   if(!res.ok){
     if(res.status===401) throw new Error("Claude isn't reachable here without a key. If you're on GitHub Pages, switch to the free engine: open “API keys” and paste a free Gemini + Finnhub key.");
@@ -355,7 +398,7 @@ async function analyzeGemini(ticker,view,risk,horizon,geminiKey,finnhubKey){
     ? `LIVE MARKET DATA (authoritative — use these exact figures, especially price):
 ${lines.join(NL)}`
     : `No live data feed supplied; estimate figures from your own knowledge and clearly flag them as estimates.`;
-  const sys=`You are a disciplined options strategist following the "Options Trading 101" process. Today is ${today}. You do NOT have web access — treat the supplied LIVE MARKET DATA as the source of truth for price and fundamentals, and use your own knowledge for qualitative thesis (note if anything may be dated). Steps: (1) investment thesis across Operational, Financial, Valuation; (2) commit to one directional/volatility VIEW; (3) pick the SINGLE best options strategy for that view, the IV environment, and the trader's risk tolerance, then answer the selection questions honestly. Implied volatility isn't in the feed — infer the IV environment qualitatively and flag it as an estimate. Choose realistic near-the-money strikes around the live price and a concrete expiry (~30-60 DTE unless told otherwise) as an approximate date; estimate premiums and flag them illustrative. Output ONLY valid minified JSON matching this schema, nothing else:
+  const sys=`You are a disciplined options strategist following the "Options Trading 101" process. Today is ${today}. You do NOT have web access — treat the supplied LIVE MARKET DATA as the source of truth for price and fundamentals, and use your own knowledge for the qualitative thesis (note if anything may be dated). ${Q_BLOCK} Implied volatility isn't in the feed — infer the IV environment qualitatively and flag it as an estimate. Choose realistic near-the-money strikes around the live price and a concrete expiry (~30-60 DTE unless told otherwise) as an approximate date; estimate premiums and flag them illustrative. In the JSON, thesis.operational/financial/valuation are arrays whose entries answer the questions above IN ORDER, and selectionQA is an array whose entries answer the selection questions IN ORDER. Output ONLY valid minified JSON matching this schema, nothing else:
 ${SCHEMA}`;
   const user=`Stock: ${sym}. ${viewLine(view)} ${riskLine(risk)} Horizon: ${horizon}.
 
@@ -455,11 +498,19 @@ function Result({r}){
         <div className="vsum" style={{flexBasis:"100%"}}>{r.view?.summary}</div>
       </div>
 
-      <Stage n="01" title="Investment Thesis">
+      <Stage n="01" title="Analyze the Company — Investment Thesis">
         <div className="triad">
-          <div className="card"><h4>Operational</h4><p>{r.thesis?.operational}</p></div>
-          <div className="card"><h4>Financial</h4><p>{r.thesis?.financial}</p></div>
-          <div className="card"><h4>Valuation</h4><p>{r.thesis?.valuation}</p></div>
+          {["operational","financial","valuation"].map(dim=>(
+            <div className="card" key={dim}>
+              <h4>{dim}</h4>
+              {THESIS_Q[dim].map((q,i)=>(
+                <div className="tq" key={i}>
+                  <div className="tq-q">{q}</div>
+                  <div className="tq-a">{((r.thesis||{})[dim]||[])[i]||"—"}</div>
+                </div>
+              ))}
+            </div>
+          ))}
         </div>
       </Stage>
 
@@ -504,13 +555,14 @@ function Result({r}){
         </div>
       </Stage>
 
-      <Stage n="04" title="Risk / Reward Check">
+      <Stage n="04" title="Select an Appropriate Options Strategy">
         <div className="qa">
-          <div className="qrow"><p className="q">If my thesis is right, what's the profit potential?</p><p className="a">{r.selectionQA?.profitIfRight}</p></div>
-          <div className="qrow"><p className="q">If only partly right, what do I make or lose?</p><p className="a">{r.selectionQA?.profitIfPartlyRight}</p></div>
-          <div className="qrow"><p className="q">How much would I lose if I'm completely wrong?</p><p className="a">{r.selectionQA?.lossIfWrong}</p></div>
-          <div className="qrow"><p className="q">Am I getting paid enough for the risk?</p><p className="a">{r.selectionQA?.paidEnough}</p></div>
-          <div className="qrow" style={{gridColumn:"1/-1"}}><p className="q">Is there a strategy with a better return for this risk?</p><p className="a">{r.selectionQA?.betterAlternative}</p></div>
+          {SELECT_Q.map((q,i)=>(
+            <div className="qrow" key={i} style={i===SELECT_Q.length-1?{gridColumn:"1/-1"}:undefined}>
+              <p className="q">{q}</p>
+              <p className="a">{(r.selectionQA||[])[i]||"—"}</p>
+            </div>
+          ))}
         </div>
       </Stage>
 
@@ -566,7 +618,7 @@ function App(){
     }catch(e){ setError(e.message||"Something went wrong."); }
     finally{ setLoading(false); clearInterval(timer.current); }
   };
-  const onKey=e=>{ if(e.key==="Enter"&&!loading){ setShowSugg(false); run(); } };
+  const onKey=e=>{ if(e.key==="Enter"&&!loading) run(); };
 
   const getIdeas=async()=>{
     setIdeasErr(""); setIdeasLoading(true);
