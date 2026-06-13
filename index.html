@@ -141,6 +141,25 @@
   ul.risks li{position:relative;padding-left:22px;color:#cfd5dd;font-size:14px;line-height:1.55}
   ul.risks li::before{content:"";position:absolute;left:0;top:8px;width:7px;height:7px;background:var(--bear);border-radius:2px;transform:rotate(45deg)}
 
+  .radar{margin-top:12px;padding:18px 20px}
+  .radar .rh{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+  .radar .rh .t{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);font-weight:600}
+  .radar .rh .note{font-size:11.5px;color:var(--mut2);margin-top:3px;max-width:520px;line-height:1.45}
+  .radar .mini{background:none;border:1px solid var(--line2);color:var(--txt);border-radius:8px;padding:8px 15px;font-size:13px;font-family:inherit;cursor:pointer;white-space:nowrap;transition:border-color .15s,color .15s}
+  .radar .mini:hover{border-color:var(--gold);color:var(--gold)}
+  .radar .mini:disabled{opacity:.5;cursor:not-allowed}
+  .ideas{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
+  .idea{text-align:left;background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:13px 14px;cursor:pointer;font-family:inherit;transition:border-color .15s,transform .05s}
+  .idea:hover{border-color:var(--gold)}
+  .idea:active{transform:translateY(1px)}
+  .idea .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .idea .tk{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:15px;color:var(--txt)}
+  .idea .lean{font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 7px;border-radius:5px}
+  .idea .nm{color:var(--mut);font-size:12px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .idea .angle{color:#cfd5dd;font-size:12.5px;margin-top:8px;line-height:1.45}
+  .idea .px{font-family:'JetBrains Mono',monospace;font-size:12px;margin-top:8px;color:var(--mut)}
+  .idea .px b{font-weight:600}
+
   .disclaimer{margin-top:38px;padding-top:20px;border-top:1px solid var(--line);color:var(--mut2);font-size:12px;line-height:1.6}
   .disclaimer b{color:var(--mut)}
 
@@ -149,6 +168,7 @@
     .go{grid-column:1/-1}
     .keys{grid-template-columns:1fr}
     .triad,.ctx,.qa,.strat .body{grid-template-columns:1fr}
+    .ideas{grid-template-columns:1fr 1fr}
     .strat .left{border-right:none;border-bottom:1px solid var(--line)}
     .rhead .px{text-align:left}
     .engine-tag{margin-left:0}
@@ -362,6 +382,45 @@ Produce the full JSON analysis. Set "currentPrice" to the exact live price above
   return r;
 }
 
+/* ---------- ideas: tickers to research ---------- */
+async function suggestGemini(geminiKey, finnhubKey){
+  const today=new Date().toISOString().slice(0,10);
+  const sys=`You are a markets research assistant. Today is ${today}. You have NO web access, so use general knowledge of widely-traded, highly liquid, optionable US-listed stocks. Propose 6 tickers commonly worth researching for options strategies (deep options liquidity, well-known stories). These are RESEARCH STARTING POINTS, not recommendations, and may be out of date. Vary the directional leans across the list. Output ONLY minified JSON: {"ideas":[{"ticker":string,"name":string,"angle":string (max 12 words),"lean":"Bullish"|"Bearish"|"Neutral"|"Volatile"}]}`;
+  const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(geminiKey)}`,{
+    method:"POST", headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({systemInstruction:{parts:[{text:sys}]},contents:[{role:"user",parts:[{text:"Give 6 ideas as JSON."}]}],generationConfig:{responseMimeType:"application/json",maxOutputTokens:2048,temperature:0.7,thinkingConfig:{thinkingBudget:0}}})
+  });
+  if(!res.ok){
+    let d=""; try{ d=(await res.json())?.error?.message||""; }catch{}
+    if(res.status===400) throw new Error("Gemini rejected the request — usually a bad API key. "+d);
+    if(res.status===429) throw new Error("Gemini rate limit hit. Wait a minute.");
+    throw new Error(`Gemini request failed (${res.status}). ${d}`);
+  }
+  const data=await res.json();
+  const text=(data.candidates?.[0]?.content?.parts||[]).map(p=>p.text||"").join("").trim();
+  let arr; try{ arr=extractJSON(text).ideas||[]; }catch{ throw new Error("Couldn't parse the ideas. Try again."); }
+  if(finnhubKey&&arr.length){
+    await Promise.all(arr.map(async it=>{ try{ const q=await fhub("quote",{symbol:(it.ticker||"").toUpperCase()},finnhubKey); if(q&&q.c){ it.price=q.c; it.dp=q.dp; } }catch{} }));
+  }
+  return arr;
+}
+async function suggestClaude(){
+  const today=new Date().toISOString().slice(0,10);
+  const sys=`You are a markets research assistant. Today is ${today}. Use web_search to find 6 US-listed, liquid, optionable stocks notable to research right now (recent movers, upcoming earnings, elevated options activity, or news). These are RESEARCH STARTING POINTS, not recommendations. Vary the directional leans. Return ONLY minified JSON: {"ideas":[{"ticker":string,"name":string,"angle":string (max 12 words),"lean":"Bullish"|"Bearish"|"Neutral"|"Volatile","price":number,"dp":number}]}`;
+  const res=await fetch("https://api.anthropic.com/v1/messages",{
+    method:"POST", headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:2048,system:sys,messages:[{role:"user",content:"Give 6 ideas as JSON."}],tools:[{type:"web_search_20250305",name:"web_search",max_uses:5}]})
+  });
+  if(!res.ok){
+    if(res.status===401) throw new Error("Add a free Gemini key to get ideas on the hosted site.");
+    throw new Error(`Request failed (${res.status}).`);
+  }
+  const data=await res.json();
+  const text=(data.content||[]).filter(b=>b.type==="text").map(b=>b.text).join(NL).trim();
+  let arr; try{ arr=extractJSON(text).ideas||[]; }catch{ throw new Error("Couldn't parse the ideas. Try again."); }
+  return arr;
+}
+
 /* ---------- presentation ---------- */
 function Verdict({view}){
   const m=DIR_META[view.direction]||DIR_META.Neutral;
@@ -476,12 +535,15 @@ function App(){
   const [step,setStep]=useState(0);
   const [error,setError]=useState("");
   const [result,setResult]=useState(null);
+  const [ideas,setIdeas]=useState(null);
+  const [ideasLoading,setIdeasLoading]=useState(false);
+  const [ideasErr,setIdeasErr]=useState("");
   const timer=useRef(null);
 
   const usingFree=!!geminiKey.trim();
 
-  const run=async()=>{
-    const t=ticker.trim();
+  const run=async(forced)=>{
+    const t=(typeof forced==="string"?forced:ticker).trim();
     if(!t){ setError("Enter a ticker symbol to analyze."); return; }
     setError(""); setResult(null); setLoading(true); setStep(0);
     timer.current=setInterval(()=>setStep(s=>(s+1)%STEPS.length),2200);
@@ -494,6 +556,18 @@ function App(){
     finally{ setLoading(false); clearInterval(timer.current); }
   };
   const onKey=e=>{ if(e.key==="Enter"&&!loading) run(); };
+
+  const getIdeas=async()=>{
+    setIdeasErr(""); setIdeasLoading(true);
+    try{
+      const list=usingFree
+        ? await suggestGemini(geminiKey.trim(),finnhubKey.trim())
+        : await suggestClaude();
+      setIdeas(list);
+    }catch(e){ setIdeasErr(e.message||"Couldn't load ideas."); }
+    finally{ setIdeasLoading(false); }
+  };
+  const pick=(t)=>{ setTicker((t||"").toUpperCase()); run(t); };
 
   return (
     <div className="wrap">
@@ -526,6 +600,32 @@ function App(){
           </select></div>
         <button className="keytoggle" onClick={()=>setShowKeys(v=>!v)}>{showKeys?"hide API keys":"API keys (free engine / hosting)"}</button>
         <span className="engine-tag">engine: <b>{usingFree?"Gemini + Finnhub (free)":"Claude"}</b></span>
+      </div>
+
+      <div className="panel radar">
+        <div className="rh">
+          <div>
+            <div className="t">On the Radar</div>
+            <div className="note">Ideas to research — not picks, not advice.{usingFree?" Generated from general knowledge, so treat as starting points (may be dated); prices are live via Finnhub.":" Live web scan for currently notable names."}</div>
+          </div>
+          <button className="mini" onClick={getIdeas} disabled={ideasLoading}>{ideasLoading?"Finding…":(ideas?"Refresh":"Get ideas")}</button>
+        </div>
+        {ideasErr && <div className="note" style={{color:"var(--bear)",marginTop:10}}>{ideasErr}</div>}
+        {ideas && ideas.length>0 &&
+          <div className="ideas">
+            {ideas.map((it,i)=>{
+              const m=DIR_META[it.lean]||DIR_META.Neutral;
+              return (
+                <button className="idea" key={i} onClick={()=>pick(it.ticker)} title={`Analyze ${it.ticker}`}>
+                  <div className="top"><span className="tk">{(it.ticker||"").toUpperCase()}</span><span className="lean" style={{background:m.soft,color:m.c}}>{it.lean}</span></div>
+                  <div className="nm">{it.name}</div>
+                  <div className="angle">{it.angle}</div>
+                  {typeof it.price==="number" &&
+                    <div className="px"><b>{fmtMoney(it.price)}</b>{typeof it.dp==="number"?<span style={{color:it.dp>=0?"var(--bull)":"var(--bear)"}}>{"  "+(it.dp>=0?"+":"")+it.dp.toFixed(2)+"%"}</span>:null}</div>}
+                </button>
+              );
+            })}
+          </div>}
       </div>
 
       {showKeys &&
