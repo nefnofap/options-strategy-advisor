@@ -94,6 +94,15 @@
   .tq:first-of-type{margin-top:4px}
   .tq-q{font-size:11.5px;font-weight:600;color:var(--gold);line-height:1.4}
   .tq-a{font-size:13px;color:#cfd5dd;line-height:1.55;margin-top:3px}
+  .ch{display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .dlean{font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 8px;border-radius:5px;white-space:nowrap}
+  .takeaway{font-size:13.5px;color:var(--txt);font-weight:600;line-height:1.5;margin:11px 0 8px}
+  .synth{font-size:13px;color:#cfd5dd;line-height:1.62;margin:0}
+  .qtoggle{margin-top:13px;background:none;border:none;color:var(--mut);font-size:11.5px;font-family:inherit;cursor:pointer;padding:0;letter-spacing:.02em}
+  .qtoggle:hover{color:var(--gold)}
+  .qwrap{margin-top:6px;border-top:1px solid var(--line);padding-top:4px}
+  .selsum{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:18px 22px}
+  .selsum p{margin:0;font-size:14.5px;color:#cfd5dd;line-height:1.62}
 
   .ctx{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
   .stat{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:16px}
@@ -315,11 +324,12 @@ const SCHEMA = `{
 "ticker": string, "companyName": string, "currentPrice": number, "asOf": string (YYYY-MM-DD),
 "priceContext": string (one line: recent trend / 52w range position),
 "view": {"direction": "Bullish"|"Bearish"|"Neutral"|"Volatile", "conviction": "Low"|"Medium"|"High", "horizon": string, "summary": string (2-3 sentences tying thesis to expected move)},
-"thesis": {"operational": [5 strings answering OPERATIONAL questions 1-5 in order], "financial": [5 strings answering FINANCIAL questions 1-5 in order], "valuation": [5 strings answering VALUATION questions 1-5 in order]},
+"thesis": {"operational": {"lean": "Bullish"|"Bearish"|"Neutral", "takeaway": string (one punchy sentence), "synthesis": string (2-3 sentence paragraph weaving the 5 answers into a read), "answers": [5 strings answering OPERATIONAL questions 1-5 in order]}, "financial": {"lean":..., "takeaway":..., "synthesis":..., "answers": [5 strings answering FINANCIAL questions 1-5 in order]}, "valuation": {"lean":..., "takeaway":..., "synthesis":..., "answers": [5 strings answering VALUATION questions 1-5 in order]}},
 "optionsContext": {"ivEnvironment": "Low"|"Moderate"|"Elevated"|"High", "ivNote": string, "earnings": string, "liquidityNote": string},
 "strategy": {"name": string (MUST be EXACTLY one of: ${STRATEGY_MENU}), "type": string, "rationale": string (3-4 sentences mapping view+IV+risk to this structure),
   "legs": [{"action":"Buy"|"Sell","right":"Call"|"Put"|"Stock","strike": number,"expiry": string,"estPremium": number (per share; 0 for Stock leg with strike=entry price),"qty": number}],
   "maxProfit": string, "maxLoss": string, "breakevens": [number], "note": string},
+"selectionSummary": string (2-3 sentence risk/reward read: is this trade worth it and why),
 "selectionQA": [7 strings answering SELECTION questions 1-7 in order],
 "alternatives": [{"name": string (also from the strategy menu), "whenToUse": string}],
 "risks": [string, string, string]
@@ -340,7 +350,7 @@ function extractJSON(text){
 /* ---------- engine A: Claude (artifact, no key) ---------- */
 async function analyzeClaude(ticker,view,risk,horizon){
   const today=new Date().toISOString().slice(0,10);
-  const sys=`You are a disciplined options strategist. Today is ${today}. Use web_search to gather the most recent data for the requested US-listed stock: current price, trend and 52-week range, fundamentals (debt, cash, margins, ROE, ROIC, P/E and EV/EBITDA vs history and peers, buybacks, insider activity), next earnings date, and the implied-volatility environment. ${Q_BLOCK} Pick realistic near-the-money strikes and a concrete expiry (~30-60 DTE unless told otherwise) as an approximate date. If exact premiums are unavailable, estimate them and flag as illustrative. In the JSON, thesis.operational/financial/valuation are arrays whose entries answer the questions above IN ORDER, and selectionQA is an array whose entries answer the selection questions IN ORDER. Return ONLY valid minified JSON matching this schema, no markdown:
+  const sys=`You are a disciplined options strategist. Today is ${today}. Use web_search to gather the most recent data for the requested US-listed stock: current price, trend and 52-week range, fundamentals (debt, cash, margins, ROE, ROIC, P/E and EV/EBITDA vs history and peers, buybacks, insider activity), next earnings date, and the implied-volatility environment. ${Q_BLOCK} Pick realistic near-the-money strikes and a concrete expiry (~30-60 DTE unless told otherwise) as an approximate date. If exact premiums are unavailable, estimate them and flag as illustrative. In the JSON, each thesis dimension (operational/financial/valuation) is an object with: a lean, a one-sentence takeaway, a synthesis paragraph, and an "answers" array whose 5 entries answer that dimension's questions IN ORDER. selectionSummary is a short risk/reward read; selectionQA is an array whose 7 entries answer the selection questions IN ORDER. Return ONLY valid minified JSON matching this schema, no markdown:
 ${SCHEMA}`;
   const user=`Stock: ${ticker.toUpperCase()}. ${viewLine(view)} ${riskLine(risk)} Horizon: ${horizon}. Produce the full JSON analysis.`;
   const res=await fetch("https://api.anthropic.com/v1/messages",{
@@ -398,7 +408,7 @@ async function analyzeGemini(ticker,view,risk,horizon,geminiKey,finnhubKey){
     ? `LIVE MARKET DATA (authoritative — use these exact figures, especially price):
 ${lines.join(NL)}`
     : `No live data feed supplied; estimate figures from your own knowledge and clearly flag them as estimates.`;
-  const sys=`You are a disciplined options strategist following the "Options Trading 101" process. Today is ${today}. You do NOT have web access — treat the supplied LIVE MARKET DATA as the source of truth for price and fundamentals, and use your own knowledge for the qualitative thesis (note if anything may be dated). ${Q_BLOCK} Implied volatility isn't in the feed — infer the IV environment qualitatively and flag it as an estimate. Choose realistic near-the-money strikes around the live price and a concrete expiry (~30-60 DTE unless told otherwise) as an approximate date; estimate premiums and flag them illustrative. In the JSON, thesis.operational/financial/valuation are arrays whose entries answer the questions above IN ORDER, and selectionQA is an array whose entries answer the selection questions IN ORDER. Output ONLY valid minified JSON matching this schema, nothing else:
+  const sys=`You are a disciplined options strategist following the "Options Trading 101" process. Today is ${today}. You do NOT have web access — treat the supplied LIVE MARKET DATA as the source of truth for price and fundamentals, and use your own knowledge for the qualitative thesis (note if anything may be dated). ${Q_BLOCK} Implied volatility isn't in the feed — infer the IV environment qualitatively and flag it as an estimate. Choose realistic near-the-money strikes around the live price and a concrete expiry (~30-60 DTE unless told otherwise) as an approximate date; estimate premiums and flag them illustrative. In the JSON, each thesis dimension (operational/financial/valuation) is an object with: a lean, a one-sentence takeaway, a synthesis paragraph, and an "answers" array whose 5 entries answer that dimension's questions IN ORDER. selectionSummary is a short risk/reward read; selectionQA is an array whose 7 entries answer the selection questions IN ORDER. Output ONLY valid minified JSON matching this schema, nothing else:
 ${SCHEMA}`;
   const user=`Stock: ${sym}. ${viewLine(view)} ${riskLine(risk)} Horizon: ${horizon}.
 
@@ -482,6 +492,9 @@ function Stage({n,title,children}){
 }
 function Result({r}){
   const s=r.strategy||{};
+  const [openT,setOpenT]=useState({});
+  const [openSel,setOpenSel]=useState(false);
+  const dimData=(dim)=>{ const d=(r.thesis||{})[dim]; if(Array.isArray(d)) return {answers:d}; return d||{}; };
   return (
     <div>
       <div className="panel rhead">
@@ -500,17 +513,26 @@ function Result({r}){
 
       <Stage n="01" title="Analyze the Company — Investment Thesis">
         <div className="triad">
-          {["operational","financial","valuation"].map(dim=>(
-            <div className="card" key={dim}>
-              <h4>{dim}</h4>
-              {THESIS_Q[dim].map((q,i)=>(
-                <div className="tq" key={i}>
-                  <div className="tq-q">{q}</div>
-                  <div className="tq-a">{((r.thesis||{})[dim]||[])[i]||"—"}</div>
-                </div>
-              ))}
-            </div>
-          ))}
+          {["operational","financial","valuation"].map(dim=>{
+            const td=dimData(dim), ans=td.answers||[], m=DIR_META[td.lean]||DIR_META.Neutral, open=!!openT[dim];
+            return (
+              <div className="card" key={dim}>
+                <div className="ch"><h4>{dim}</h4>{td.lean&&<span className="dlean" style={{background:m.soft,color:m.c}}>{td.lean}</span>}</div>
+                {td.takeaway&&<p className="takeaway">{td.takeaway}</p>}
+                <p className="synth">{td.synthesis||ans.filter(Boolean).join(" ")}</p>
+                <button className="qtoggle" onClick={()=>setOpenT(o=>({...o,[dim]:!o[dim]}))}>{open?"▾ hide the 5 questions":"▸ show the 5 questions"}</button>
+                {open&&
+                  <div className="qwrap">
+                    {THESIS_Q[dim].map((q,i)=>(
+                      <div className="tq" key={i}>
+                        <div className="tq-q">{q}</div>
+                        <div className="tq-a">{ans[i]||"—"}</div>
+                      </div>
+                    ))}
+                  </div>}
+              </div>
+            );
+          })}
         </div>
       </Stage>
 
@@ -556,14 +578,19 @@ function Result({r}){
       </Stage>
 
       <Stage n="04" title="Select an Appropriate Options Strategy">
-        <div className="qa">
-          {SELECT_Q.map((q,i)=>(
-            <div className="qrow" key={i} style={i===SELECT_Q.length-1?{gridColumn:"1/-1"}:undefined}>
-              <p className="q">{q}</p>
-              <p className="a">{(r.selectionQA||[])[i]||"—"}</p>
-            </div>
-          ))}
+        <div className="selsum">
+          <p>{r.selectionSummary||"—"}</p>
+          <button className="qtoggle" onClick={()=>setOpenSel(v=>!v)}>{openSel?"▾ hide the 7 questions":"▸ show the 7 questions"}</button>
         </div>
+        {openSel&&
+          <div className="qa" style={{marginTop:14}}>
+            {SELECT_Q.map((q,i)=>(
+              <div className="qrow" key={i} style={i===SELECT_Q.length-1?{gridColumn:"1/-1"}:undefined}>
+                <p className="q">{q}</p>
+                <p className="a">{(r.selectionQA||[])[i]||"—"}</p>
+              </div>
+            ))}
+          </div>}
       </Stage>
 
       {(r.alternatives||[]).length>0 &&
