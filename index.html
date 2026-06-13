@@ -141,6 +141,14 @@
   ul.risks li{position:relative;padding-left:22px;color:#cfd5dd;font-size:14px;line-height:1.55}
   ul.risks li::before{content:"";position:absolute;left:0;top:8px;width:7px;height:7px;background:var(--bear);border-radius:2px;transform:rotate(45deg)}
 
+  .tickwrap{position:relative}
+  .sugg{position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:30;background:var(--panel2);border:1px solid var(--line2);border-radius:9px;overflow:hidden auto;max-height:248px;box-shadow:0 12px 34px rgba(0,0,0,.45)}
+  .sugg button{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:none;border-bottom:1px solid var(--line);color:var(--txt);padding:9px 12px;font-family:inherit;font-size:13px;cursor:pointer}
+  .sugg button:last-child{border-bottom:none}
+  .sugg button:hover{background:var(--line)}
+  .sugg .s{font-family:'JetBrains Mono',monospace;font-weight:700;letter-spacing:.04em}
+  .sugg .d{color:var(--mut);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:62%}
+
   .radar{margin-top:12px;padding:18px 20px}
   .radar .rh{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
   .radar .rh .t{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);font-weight:600}
@@ -538,7 +546,10 @@ function App(){
   const [ideas,setIdeas]=useState(null);
   const [ideasLoading,setIdeasLoading]=useState(false);
   const [ideasErr,setIdeasErr]=useState("");
+  const [sugg,setSugg]=useState([]);
+  const [showSugg,setShowSugg]=useState(false);
   const timer=useRef(null);
+  const searchTimer=useRef(null);
 
   const usingFree=!!geminiKey.trim();
 
@@ -555,7 +566,7 @@ function App(){
     }catch(e){ setError(e.message||"Something went wrong."); }
     finally{ setLoading(false); clearInterval(timer.current); }
   };
-  const onKey=e=>{ if(e.key==="Enter"&&!loading) run(); };
+  const onKey=e=>{ if(e.key==="Enter"&&!loading){ setShowSugg(false); run(); } };
 
   const getIdeas=async()=>{
     setIdeasErr(""); setIdeasLoading(true);
@@ -569,6 +580,24 @@ function App(){
   };
   const pick=(t)=>{ setTicker((t||"").toUpperCase()); run(t); };
 
+  const onTickerChange=(e)=>{
+    const v=e.target.value; setTicker(v);
+    if(searchTimer.current) clearTimeout(searchTimer.current);
+    const key=finnhubKey.trim();
+    if(!key || v.trim().length<1){ setShowSugg(false); setSugg([]); return; }
+    searchTimer.current=setTimeout(async()=>{
+      try{
+        const r=await fhub("search",{q:v.trim()},key);
+        const list=(r.result||[])
+          .filter(it=>it.symbol && !it.symbol.includes(".") && !it.symbol.includes(":"))
+          .slice(0,8)
+          .map(it=>({symbol:it.symbol, description:it.description||it.displaySymbol||""}));
+        setSugg(list); setShowSugg(list.length>0);
+      }catch{ setShowSugg(false); }
+    },250);
+  };
+  const chooseSugg=(sym)=>{ setTicker((sym||"").toUpperCase()); setSugg([]); setShowSugg(false); };
+
   return (
     <div className="wrap">
       <div className="top">
@@ -581,7 +610,13 @@ function App(){
 
       <div className="panel controls">
         <div className="field"><label>Ticker</label>
-          <input className="mono" placeholder="AAPL" value={ticker} onChange={e=>setTicker(e.target.value)} onKeyDown={onKey} maxLength={6}/></div>
+          <div className="tickwrap">
+            <input className="mono" placeholder="AAPL" value={ticker} onChange={onTickerChange} onKeyDown={onKey} onBlur={()=>setTimeout(()=>setShowSugg(false),150)} maxLength={8} autoComplete="off"/>
+            {showSugg && sugg.length>0 &&
+              <div className="sugg">
+                {sugg.map((x,i)=><button key={i} type="button" onMouseDown={()=>chooseSugg(x.symbol)}><span className="s">{x.symbol}</span><span className="d">{x.description}</span></button>)}
+              </div>}
+          </div></div>
         <div className="field"><label>Your view</label>
           <select value={view} onChange={e=>setView(e.target.value)}>
             <option>Auto</option><option>Bullish</option><option>Bearish</option><option>Neutral</option><option>Volatile</option>
