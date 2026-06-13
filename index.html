@@ -336,7 +336,7 @@ ${dataBlock}
 Produce the full JSON analysis. Set "currentPrice" to the exact live price above.`;
   const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(geminiKey)}`,{
     method:"POST", headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({systemInstruction:{parts:[{text:sys}]},contents:[{role:"user",parts:[{text:user}]}],generationConfig:{responseMimeType:"application/json",maxOutputTokens:4096,temperature:0.45}})
+    body:JSON.stringify({systemInstruction:{parts:[{text:sys}]},contents:[{role:"user",parts:[{text:user}]}],generationConfig:{responseMimeType:"application/json",maxOutputTokens:8192,temperature:0.45,thinkingConfig:{thinkingBudget:0}}})
   });
   if(!res.ok){
     let d=""; try{ d=(await res.json())?.error?.message||""; }catch{}
@@ -345,10 +345,17 @@ Produce the full JSON analysis. Set "currentPrice" to the exact live price above
     throw new Error(`Gemini request failed (${res.status}). ${d}`);
   }
   const data=await res.json();
+  const cand=data.candidates?.[0];
   if(data.promptFeedback?.blockReason) throw new Error("Gemini blocked the response. Try a different ticker.");
-  const text=(data.candidates?.[0]?.content?.parts||[]).map(p=>p.text||"").join("").trim();
-  if(!text) throw new Error("Gemini returned no analysis. Try again.");
-  let r; try{ r=extractJSON(text); }catch{ throw new Error("Couldn't parse Gemini's output. Try again."); }
+  const text=(cand?.content?.parts||[]).map(p=>p.text||"").join("").trim();
+  if(!text){
+    if(cand?.finishReason==="MAX_TOKENS") throw new Error("Gemini ran out of output room before answering. Try again.");
+    throw new Error("Gemini returned no analysis. Try again.");
+  }
+  let r; try{ r=extractJSON(text); }catch{
+    if(cand?.finishReason==="MAX_TOKENS") throw new Error("Gemini's answer got cut off (output limit). Try again — it usually works on retry.");
+    throw new Error("Couldn't parse Gemini's output. Try again.");
+  }
   if(quote&&quote.c) r.currentPrice=quote.c;
   if(profile&&profile.name) r.companyName=profile.name;
   r.ticker=sym; r.asOf=today; r._engine=finnhubKey?"Gemini 2.5 Flash · Finnhub data":"Gemini 2.5 Flash · no live feed";
